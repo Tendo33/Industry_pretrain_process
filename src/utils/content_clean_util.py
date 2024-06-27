@@ -260,7 +260,6 @@ def pretrain_base_clean(content_list: list[str]) -> list[str]:
         content = jionlp.replace_url(content, token='xxxxxxxxx')
 
         content = clean_special_char(content)
-        content = remove_space(content)
 
         content = replace_special_char(content).strip("\n").strip()
 
