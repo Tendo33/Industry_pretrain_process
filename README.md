@@ -16,4 +16,6 @@ wget --header="Cookie: lastVisitedPage=https://hub.baai.ac.cn/; guidance-2024=ye
 
    `python3 unzip.py`
 
-4.
+4. 将切片的文件合并
+5. 使用 `analysis.ipynb` 进行数据可视化分析
+6.

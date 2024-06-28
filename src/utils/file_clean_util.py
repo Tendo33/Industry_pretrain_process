@@ -168,12 +168,25 @@ def extract_txt_content(folder_path: str) -> list[dict]:
 
 
 # 从 jsonl 中提取 key 信息
-def extract_key_information(file_path: str, keywords: str) -> List[str]:
-    keyword_out = []
+def extract_key_information(file_path: str, keywords: Union[str, list[str]]) -> Union[list[str], dict]:
+    if isinstance(keywords, str):
+        keyword_out = []
 
-    with open(file_path, "r", encoding="utf-8") as file:
-        for line in file:
-            data = json.loads(line)
-            keyword_out.append(data.get(keywords, '').strip())
+        with open(file_path, "r", encoding="utf-8") as file:
+            for line in file:
+                data = json.loads(line)
+                keyword_out.append(data.get(keywords))
 
-    return keyword_out
+        return keyword_out
+
+    elif isinstance(keywords, list):
+        keyword_out = {key: [] for key in keywords}
+
+        with open(file_path, "r", encoding="utf-8") as file:
+            for line in file:
+                data = json.loads(line)
+                for key in keywords:
+                    value = data.get(key, "")
+                    keyword_out[key].append(value)
+
+        return keyword_out
