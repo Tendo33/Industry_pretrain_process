@@ -3,7 +3,6 @@ import dotenv
 import subprocess
 from gptpdf import parse_pdf
 
-# 加载环境变量
 dotenv.load_dotenv()
 
 
@@ -11,11 +10,9 @@ def test_use_api_key(pdf_path, output_dir):
     api_key = os.getenv('OPENAI_API_KEY')
     base_url = os.getenv('OPENAI_API_BASE')
 
-    # 调用 parse_pdf 方法
     content, image_paths = parse_pdf(
         pdf_path, output_dir=output_dir, api_key=api_key, base_url=base_url, model='gpt-4o', gpt_worker=12)
 
-    # 打印输出结果
     print(content)
     print(image_paths)
 
