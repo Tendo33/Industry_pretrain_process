@@ -26,10 +26,10 @@ def convert_md_to_json(md_path, json_path):
 
 
 if __name__ == '__main__':
-    pdf_path = '/home/sunjinf/github_projet/nature_data/文档/CH31-00 测绘地理信息通用/202x全球基本比例尺地图分幅和编号（征求意见稿）.pdf'
-    output_dir = '/home/sunjinf/github_projet/gptpdf/test/CH31-00 测绘地理信息通用/202x全球基本比例尺地图分幅和编号（征求意见稿）'
+    pdf_path = r'/home/sunjinf/github_projet/nature_data/文档/CH31-00 测绘地理信息通用/202x全球基本比例尺地图分幅和编号（征求意见稿）.pdf'
+    output_dir = r'/home/sunjinf/github_projet/Industry_pretrain_process/test/CH31-00    测绘地理信息通用'
     md_path = os.path.join(output_dir, 'output.md')
-    json_path = '/home/sunjinf/github_projet/gptpdf/examples/output.json'
+    json_path = r'/home/sunjinf/github_projet/Industry_pretrain_process/test/CH31-00    测绘地理信息通用/202x全球基本比例尺地图分幅和编号（征求意见稿）/output.json'
 
-    test_use_api_key(pdf_path, output_dir)
+    # test_use_api_key(pdf_path, output_dir)
     convert_md_to_json(md_path, json_path)

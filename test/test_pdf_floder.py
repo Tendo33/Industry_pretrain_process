@@ -1,6 +1,8 @@
 import os
 import dotenv
+import subprocess
 from gptpdf import parse_pdf
+from tqdm import tqdm
 
 # Load environment variables from .env file
 dotenv.load_dotenv()
@@ -29,6 +31,14 @@ def process_pdf_file(pdf_path, output_dir, api_key, base_url):
     return content, image_paths
 
 
+def convert_md_to_json(md_path, json_path):
+    command = f'md_to_json -o "{json_path}" "{md_path}"'
+    result = subprocess.run(command, shell=True, check=True,
+                            text=True, capture_output=True)
+    print(result.stdout)
+    print(result.stderr)
+
+
 def process_pdfs_in_directory(directory, api_key, base_url):
     # Check if the directory exists
     if not os.path.isdir(directory):
@@ -36,17 +46,22 @@ def process_pdfs_in_directory(directory, api_key, base_url):
         return
 
     # Iterate over all files in the directory
-    for filename in os.listdir(directory):
+    for filename in tqdm(os.listdir(directory)):
         if filename.endswith('.pdf'):
+            filename_without_suffix = os.path.splitext(filename)[0]
             pdf_path = os.path.join(directory, filename)
             # Create a directory based on the PDF file name
             output_dir = os.path.splitext(pdf_path)[0]
 
             create_output_directory(output_dir)
 
-            # Process the PDF file
             content, image_paths = process_pdf_file(
                 pdf_path, output_dir, api_key, base_url)
+
+            md_path = os.path.join(output_dir, 'output.md')
+            json_path = os.path.join(
+                output_dir, f'{filename_without_suffix}.json')
+            convert_md_to_json(md_path, json_path)
 
             print(f"Processed '{pdf_path}':")
             print(content)
@@ -61,10 +76,8 @@ def main():
         print("API Key:", api_key)
         print("Base URL:", base_url)
 
-        # Specify the directory containing the PDF files
-        pdf_directory = '../examples/'
+        pdf_directory = r'/home/sunjinf/github_projet/nature_data/all_pdf_files'
 
-        # Process all PDFs in the directory
         process_pdfs_in_directory(pdf_directory, api_key, base_url)
     except ValueError as e:
         print(e)
