@@ -40,12 +40,11 @@ def convert_md_to_json(md_path, json_path):
 
 
 def process_pdfs_in_directory(directory, api_key, base_url):
-    # Check if the directory exists
+
     if not os.path.isdir(directory):
         print(f"Directory '{directory}' does not exist.")
         return
 
-    # Iterate over all files in the directory
     for filename in tqdm(os.listdir(directory)):
         if filename.endswith('.pdf'):
             filename_without_suffix = os.path.splitext(filename)[0]
