@@ -20,5 +20,5 @@ def decompress_gz_files(folder_path):
 
 
 if __name__ == '__main__':
-    folder_path = '/data/nfs/data/IndustryCorpus/chinese'
+    folder_path = r'/data/nfs/data/IndustryCorpus/chinese'
     decompress_gz_files(folder_path)
