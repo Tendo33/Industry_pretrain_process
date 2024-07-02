@@ -86,22 +86,28 @@ def process_pdfs_in_directory(directory: str, api_key: str, base_url: str) -> No
             # Create a directory based on the PDF file name
             output_dir = os.path.splitext(pdf_path)[0]
 
-            create_output_directory(output_dir)
+            # Check if the output directory already exists
+            if os.path.isdir(output_dir):
+                print(f"'{output_dir}' already exists. Skipping '{pdf_path}'.")
+                continue
+            try:
+                create_output_directory(output_dir)
 
-            content, image_paths = process_pdf_file(
-                pdf_path, output_dir, api_key, base_url)
+                content, image_paths = process_pdf_file(
+                    pdf_path, output_dir, api_key, base_url)
 
-            md_path = os.path.join(output_dir, 'output.md')
-            json_path = os.path.join(
-                output_dir, f'{filename_without_suffix}.json')
+                md_path = os.path.join(output_dir, 'output.md')
+                json_path = os.path.join(
+                    output_dir, f'{filename_without_suffix}.json')
 
-            convert_md_to_json(md_path, json_path)
+                convert_md_to_json(md_path, json_path)
 
-            print(f"Processed '{pdf_path}':")
-            print(content)
-            print(image_paths)
-            print(f"Output saved to '{output_dir}'\n")
-
+                print(f"Processed '{pdf_path}':")
+                print(content)
+                print(image_paths)
+                print(f"Output saved to '{output_dir}'\n")
+            except Exception as e:
+                print(f"Error processing '{pdf_path}': {e}")
 
 def main(pdf_directory: str) -> None:
     """Main function to load environment variables and process PDFs."""
