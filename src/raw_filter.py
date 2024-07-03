@@ -21,6 +21,6 @@ def process_base(source_file_path: str, target_file_path: str) -> None:
 
 
 if __name__ == '__main__':
-    source_file_path = r'/data/nfs/data/Industry_raw_data/politics.jsonl'
-    target_file_path = r'/data/nfs/data/Industry_raw_data/data_filter/politics_filter.jsonl'
+    source_file_path = r'/data/nfs/data/Industry_raw_data/agriculture.jsonl'
+    target_file_path = r'/data/nfs/data/Industry_raw_data/data_filter/agriculture_filter.jsonl'
     process_base(source_file_path, target_file_path)

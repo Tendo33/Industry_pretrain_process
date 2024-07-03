@@ -12,7 +12,7 @@ def create_temp_dict(content_list: list[str], lang_score_list: list[float],
 
     for content, lang_score, special_char_ratio, char_rep_ratio, perplexity in zip(content_list, lang_score_list, special_char_ratio_list, char_rep_ratio_list, perplexity_list):
         length = len(content)
-        if lang_score > 0.85 and perplexity < 1300:
+        if lang_score > 0.85 and perplexity < 1000:
 
             temp_dict = {
                 "content": content,
