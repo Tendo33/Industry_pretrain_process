@@ -16,7 +16,7 @@ def merge_jsonl_files(root_dir):
                 for json_filename in os.listdir(folder_path):
                     json_filepath = os.path.join(folder_path, json_filename)
 
-                    if json_filename.endswith('.json'):
+                    if json_filename.endswith('.jsonl'):
                         with open(json_filepath, 'r', encoding='utf-8') as json_file:
                             for line in json_file:
                                 jsonl_file.write(line)
@@ -26,5 +26,5 @@ def merge_jsonl_files(root_dir):
 
 
 if __name__ == "__main__":
-    root_directory = r"/data/nfs/data/IndustryCorpus/chinese"
+    root_directory = r"/data/nfs/data/MNBVC/wiki"
     merge_jsonl_files(root_directory)
