@@ -8,7 +8,8 @@ keywords = [
     "渔业", "林业", "矿物", "资源开采", "环境保护"
 ]
 
-def extract_info(file_path: str) -> list[dict]:
+
+def extract_wiki_info(file_path: str) -> list[dict]:
     all_data_list = []
     with open(file_path, 'r', encoding='utf-8') as f:
         for line in f:
@@ -35,7 +36,7 @@ def extract_info(file_path: str) -> list[dict]:
             all_data_list.append(entry_info)
     return all_data_list
 def main(file_path: str, out_path: str) -> None:
-    all_data_list = extract_info(file_path)
+    all_data_list = extract_wiki_info(file_path)
     save_to_jsonl(all_data_list, out_path)
 
 if __name__ == '__main__':
