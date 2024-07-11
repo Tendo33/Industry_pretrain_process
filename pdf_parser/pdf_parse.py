@@ -11,7 +11,7 @@ def test_use_api_key(pdf_path, output_dir):
     base_url = os.getenv('OPENAI_API_BASE')
 
     content, image_paths = parse_pdf(
-        pdf_path, output_dir=output_dir, api_key=api_key, base_url=base_url, model='gpt-4o', gpt_worker=12)
+        pdf_path, output_dir=output_dir, api_key=api_key, base_url=base_url, model='xxx', gpt_worker=12)
 
     print(content)
     print(image_paths)
@@ -26,10 +26,10 @@ def convert_md_to_json(md_path, json_path):
 
 
 if __name__ == '__main__':
-    pdf_path = r'/home/sunjinf/github_projet/nature_data/文档/CH31-00 测绘地理信息通用/202x全球基本比例尺地图分幅和编号（征求意见稿）.pdf'
-    output_dir = r'/home/sunjinf/github_projet/Industry_pretrain_process/test/CH31-00    测绘地理信息通用'
+    pdf_path = r'/home/sunjinf/github_projet/nature_data/origin_pdf/(GBT 30600-2022)高标准农田建设 通则.pdf'
+    output_dir = r'/home/sunjinf/github_projet/nature_data/(GBT 30600-2022)高标准农田建设 通则'
     md_path = os.path.join(output_dir, 'output.md')
-    json_path = r'/home/sunjinf/github_projet/Industry_pretrain_process/test/CH31-00    测绘地理信息通用/202x全球基本比例尺地图分幅和编号（征求意见稿）/output.json'
+    json_path = r'/home/sunjinf/github_projet/nature_data/output.json'
 
-    # test_use_api_key(pdf_path, output_dir)
+    test_use_api_key(pdf_path, output_dir)
     convert_md_to_json(md_path, json_path)
