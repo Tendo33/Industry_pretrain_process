@@ -41,6 +41,6 @@ def main(file_path: str, out_path: str) -> None:
 
 
 if __name__ == '__main__':
-    file_path = r"/workspace/share_data/data/MNBVC/wiki_filter/20230198_new.jsonl"
-    out_file = r"/workspace/share_data/data/MNBVC/wiki_filter/wiki_filter_01.jsonl"
+    file_path = r"/workspace/share_data/pretrain_data/wiki_filter_all.jsonl"
+    out_file = r"/workspace/share_data/pretrain_data/wiki_filter_all_new.jsonl"
     main(file_path, out_file)
