@@ -43,7 +43,7 @@ def model_infer_curl(system_content: str, user_content: str, model_url: str, tem
 
     API_URL = "http://ai-api.e-tudou.com:9000/v1/chat/completions"
     API_KEY = "sk-uG93vRV5V2Dog95J15FfCdE5DaAe438fBb17C642F2E1Ae57"
-    MODEL_NAME = "qwen2-72b-instruct"
+    MODEL_NAME = "qwen2-max"
 
     headers = {
         "Content-Type": "application/json",
@@ -127,7 +127,8 @@ def process_markdown_files(input_folder: str, output_file: str, model_url: str):
                 processed_content = ""
                 for chunk in tqdm(chunks, desc=f"Processing {file}"):
                     query = construct_query(chunk)
-                    chunk_result = model_infer(SYSTEM_PROMPT, query, model_url)
+                    chunk_result = model_infer_curl(
+                        SYSTEM_PROMPT, query, model_url)
                     processed_content += chunk_result
 
                 result = {"title": folder_name, "content": processed_content}
@@ -139,7 +140,7 @@ def process_markdown_files(input_folder: str, output_file: str, model_url: str):
 
 
 if __name__ == "__main__":
-    input_folder_path = r"/path/to/your/input/folder"
-    output_file_path = r"/path/to/your/output/file.jsonl"
+    input_folder_path = r"/home/sunjinf/github_projet/nature_data/out_first"
+    output_file_path = r"/home/sunjinf/github_projet/nature_data/out_first_processed.jsonl"
     model_api_url = "http://ai-api.e-tudou.com:9000/v1"
     process_markdown_files(input_folder_path, output_file_path, model_api_url)
