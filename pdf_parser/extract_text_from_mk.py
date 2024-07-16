@@ -145,7 +145,7 @@ def process_markdown_files(input_folder: str, output_file: str, model_url: str):
                     logging.error(f"Failed to write to {output_file}: {e}")
 
 if __name__ == "__main__":
-    input_folder_path = r"/home/sunjinf/github_projet/nature_data/out_first"
-    output_file_path = r"/home/sunjinf/github_projet/nature_data/out_first_processed.jsonl"
+    input_folder_path = r"/home/sunjinf/github_projet/nature_data/out_second"
+    output_file_path = r"/home/sunjinf/github_projet/nature_data/out_second_processed.jsonl"
     model_api_url = "http://ai-api.e-tudou.com:9000/v1"
     process_markdown_files(input_folder_path, output_file_path, model_api_url)
