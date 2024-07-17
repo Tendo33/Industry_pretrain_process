@@ -72,7 +72,11 @@ def model_infer_curl(system_content: str, user_content: str, model_url: str, tem
         return ''
 
     response = json.loads(result.stdout)
-    return response['choices'][0]['message']['content'].strip()
+    if not response:
+        logging.error("API request failed: No response received")
+        return ''
+    else:
+        return response['choices'][0]['message']['content'].strip()
 
 def model_infer(system_content: str, user_content: str, model_url: str, temperature: float = 0.9, frequency_penalty: float = 0.0, presence_penalty: float = 0.0) -> str:
 
@@ -80,10 +84,10 @@ def model_infer(system_content: str, user_content: str, model_url: str, temperat
         api_key="sk-uG93vRV5V2Dog95J15FfCdE5DaAe438fBb17C642F2E1Ae57",
         base_url=model_url
     )
-    model_name = "qwen-max"
+    model_name = "Qwen1.5-72B-Chat-GPTQ-Int4"
     start_time = time.time()
 
-    response = client.chat_completions.create(
+    response = client.chat.completions.create(
         model=model_name,
         messages=[
             {"role": "system", "content": system_content},
@@ -130,7 +134,7 @@ def process_markdown_files(input_folder: str, output_file: str, model_url: str):
 
                 for chunk in tqdm(chunks, desc=f"Processing {file}"):
                     query = construct_query(chunk)
-                    chunk_result = model_infer_curl(
+                    chunk_result = model_infer(
                         SYSTEM_PROMPT, query, model_url)
                     if chunk_result is None:
                         continue
@@ -145,7 +149,7 @@ def process_markdown_files(input_folder: str, output_file: str, model_url: str):
                     logging.error(f"Failed to write to {output_file}: {e}")
 
 if __name__ == "__main__":
-    input_folder_path = r"/home/sunjinf/github_projet/nature_data/out_second"
-    output_file_path = r"/home/sunjinf/github_projet/nature_data/out_second_processed.jsonl"
+    input_folder_path = r"/home/sunjinf/github_projet/nature_data/out_first"
+    output_file_path = r"/home/sunjinf/github_projet/nature_data/out_first_processed.jsonl"
     model_api_url = "http://ai-api.e-tudou.com:9000/v1"
     process_markdown_files(input_folder_path, output_file_path, model_api_url)
