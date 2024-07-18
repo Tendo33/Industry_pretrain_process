@@ -28,16 +28,17 @@ SYSTEM_PROMPT = '''
 - 错字识别与修复
 
 ## Constraints
-- 忽略图片信息。
+- 忽略图片和表格内容信息。
+- 不要编纂内容，只输出跟原文相关的内容。
 - 按照原文意思提取出有用的信息，如果句子不完整或者不通顺，你要使其变得完整。
-- 如果表格中有文字内容，你要用完整的语言来描述这个表格内容。如果表格里的数据全是数字，就忽略这个表格。
 - 返回的内容中的正文不要带markdown格式，只有标题可以带markdown格式。
 - 只输出提取出来的文字，不能输出你的总结，建议或者任何其他的字段。
+- 不要返回任何提示信息
 
 ## Workflow
 1. 用户提供Markdown文件内容。
 2. 提取文件中的纯文字和信息。
-3. 识别并修复其中的中文错字漏字。
+3. 识别并修复其中的中文错字漏字使其变为通顺的句子。
 4. 只返回修复后的纯文字内容。
 '''
 
@@ -108,6 +109,6 @@ if __name__ == "__main__":
 
     # Sampling参数
     sampling_params = SamplingParams(
-        temperature=1, top_p=0.95, max_tokens=8192)
+        temperature=1, top_p=0.95)
     llm = LLM(model=MODEL_PATH, dtype="auto", tensor_parallel_size=1,
               tokenizer_mode="auto", gpu_memory_utilization=0.95, enforce_eager=True)
