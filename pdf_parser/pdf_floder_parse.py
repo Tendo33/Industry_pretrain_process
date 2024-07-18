@@ -123,5 +123,5 @@ def main(pdf_directory: str) -> None:
 
 
 if __name__ == '__main__':
-    pdf_directory = r'/home/sunjinf/github_projet/nature_data/origin_pdf_second'
+    pdf_directory = r'/home/sunjinf/github_projet/nature_data/origin_pdf_third'
     main(pdf_directory)

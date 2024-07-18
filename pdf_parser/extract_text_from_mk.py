@@ -119,6 +119,7 @@ def split_into_chunks(text: str, chunk_size: int = 4000) -> list:
 def process_markdown_files(input_folder: str, output_file: str, model_url: str):
     for subdir, _, files in os.walk(input_folder):
         for file in files:
+            print(output_file_path)
             if file.endswith(".md"):
                 folder_name = os.path.basename(subdir)
                 file_path = os.path.join(subdir, file)
@@ -152,4 +153,5 @@ if __name__ == "__main__":
     input_folder_path = r"/home/sunjinf/github_projet/nature_data/out_first"
     output_file_path = r"/home/sunjinf/github_projet/nature_data/out_first_processed.jsonl"
     model_api_url = "http://ai-api.e-tudou.com:9000/v1"
+
     process_markdown_files(input_folder_path, output_file_path, model_api_url)
