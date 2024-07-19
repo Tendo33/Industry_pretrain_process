@@ -34,8 +34,8 @@ def move_directories(src_dir, dst_dir):
 
 if __name__ == '__main__':
 
-    folder_path = r'/home/sunjinf/github_projet/nature_data/origin_pdf_second'
-    target_dir = r'/home/sunjinf/github_projet/nature_data/out_second'
+    folder_path = r'/home/sunjinf/github_projet/nature_data/origin_pdf_third'
+    target_dir = r'/home/sunjinf/github_projet/nature_data/out_third'
 
     delete_images_in_subfolders(folder_path)
     move_directories(folder_path, target_dir)
