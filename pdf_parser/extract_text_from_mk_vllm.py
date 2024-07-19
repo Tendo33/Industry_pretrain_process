@@ -104,7 +104,7 @@ def process_markdown_files(input_folder: str, output_file: str):
 
 if __name__ == "__main__":
     # 模型和tokenizer路径
-    MODEL_PATH = "/workspace/share_data/base_llms/Qwen2-7B-Instruct"
+    MODEL_PATH = "/workspace/share_data/base_llms/Qwen2-72B-Instruct-AWQ"
     tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 
     # Sampling参数
