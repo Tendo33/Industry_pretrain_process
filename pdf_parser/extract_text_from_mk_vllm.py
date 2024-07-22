@@ -5,11 +5,10 @@ import json
 from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from vllm import LLM, SamplingParams
-from thefuzz import process as fuzz_process
 
 logging.basicConfig(level=logging.INFO)
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "4"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 SYSTEM_PROMPT = '''
 # Role
@@ -104,7 +103,7 @@ def process_markdown_files(input_folder: str, output_file: str):
 
 if __name__ == "__main__":
     # 模型和tokenizer路径
-    MODEL_PATH = "/workspace/share_data/base_llms/Qwen2-72B-Instruct-AWQ"
+    MODEL_PATH = r"/workspace/share_data/base_llms/Qwen2-72B-Instruct-AWQ"
     tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 
     # Sampling参数
@@ -112,3 +111,7 @@ if __name__ == "__main__":
         temperature=1, top_p=0.95)
     llm = LLM(model=MODEL_PATH, dtype="auto", tensor_parallel_size=1,
               tokenizer_mode="auto", gpu_memory_utilization=0.95, enforce_eager=True)
+
+    INPUT_FOLDER = r"/workspace/share_data/data/nature_data/out_123"
+    OUTPUT_FILE = r"/workspace/share_data/data/nature_data/out_123_text.jsonl"
+    process_markdown_files(INPUT_FOLDER, OUTPUT_FILE)
