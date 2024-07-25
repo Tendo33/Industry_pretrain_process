@@ -21,7 +21,7 @@ def clean_wiki_data(wiki_data: dict) -> dict:
                 break
 
             cleaned_content.append(f"{content_list[i].strip('=').strip()}:")
-        elif "外部连结" in content_list[i] or "参考文献" in content_list[i]:
+        elif "外部连结" in content_list[i] or "参考文献" in content_list[i] or "#>Documentation at" in content_list[i]:
             break
         else:
 
