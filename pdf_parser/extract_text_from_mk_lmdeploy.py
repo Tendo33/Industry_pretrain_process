@@ -28,6 +28,7 @@ SYSTEM_PROMPT = '''
 - 忽略图片信息，不要输出跟图片相关的信息。
 - 如果遇到表格信息，用文字对表格进行总结，不要输出markdown中“| |”表格格式。
 - 不要编纂内容，只输出跟原文相关的内容。
+- 如果原文中的句子出现无意义的重复内容，比如“影像不同影像不同影像不同影像不同”，输出时删除类似的内容。
 - 按照原文意思提取出有用的信息，如果句子不完整或者不通顺，你要使其变得完整。
 - 返回的内容中的正文不要带markdown格式，只有标题可以带markdown格式。
 - 只输出提取出来的文字，不能输出你的总结，建议或者任何其他的字段。
@@ -56,7 +57,7 @@ def construct_query(content: str) -> str:
     return prompt
 
 
-def split_into_chunks(text: str, chunk_size: int = 6000) -> list:
+def split_into_chunks(text: str, chunk_size: int = 4000) -> list:
     return [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
 
 
@@ -105,7 +106,7 @@ if __name__ == "__main__":
     backend_config = TurbomindEngineConfig(
         tp=1, quant_policy=8, model_format="awq")
     gen_config = GenerationConfig(
-        top_p=0.8, top_k=40, temperature=0.5, max_new_tokens=12000)
+        top_p=0.8, top_k=40, temperature=0.4, max_new_tokens=24000)
     pipe = pipeline(MODEL_PATH,
                     backend_config=backend_config)
 
