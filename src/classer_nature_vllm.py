@@ -2,7 +2,7 @@ import re
 import os
 import json
 from tqdm import tqdm
-# from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer
 from vllm import LLM, SamplingParams
 
 # os.environ["NCCL_NVLS_ENABLE"] = "0"
@@ -59,9 +59,12 @@ SYSTEM_PROMPT_PRO = '''
 ## Rules
 - 必须基于用户输入的内容进行鉴定。
 - 如果用户输入的内容与自然资源领域重合达到百分之90，返回数字“1”。
+- 如果你判断的输入内容和自然资源领域重合度小于百分之90，则认为与自然资源领域无关，返回数字“0”。
 - 任何的人物信息和事件均不属于自然资源领域，直接返回数字“0”。
 - 如果用户输入的内容有一点与自然资源不相关，返回数字“0”。
 - 除了数字“1”或者“0”，不得输出其他文字。
+- 如果你无法判断或者不知道要输出什么，则返回数字“0”。
+- 不要输出任何分析、判断过程。
 
 ## Workflow
 1. 接收用户输入的文本。
@@ -77,9 +80,9 @@ def apply_template(text: str) -> str:
         {"role": "system", "content": SYSTEM_PROMPT_PRO},
         {"role": "user", "content": text}
     ]
-    # tokenized_chat = tokenizer.apply_chat_template(
-    #     messages, tokenize=False, add_generation_prompt=True)
-    return messages
+    tokenized_chat = tokenizer.apply_chat_template(
+        messages, tokenize=False, add_generation_prompt=True)
+    return tokenized_chat
 
 
 def make_user_prompt(text: str) -> str:
@@ -123,8 +126,8 @@ def process_documents_in_batch(documents, start_index, end_index, llm, sampling_
 if __name__ == "__main__":
     # 模型和tokenizer路径
     MODEL_PATH = r"/workspace/share_data/base_llms/Qwen2-7B-Instruct"
-    MODEL_PATH = r"/workspace/share_data/base_llms/Yi-1.5-34B-Chat-16K-GPTQ-Int4"
-    # tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
+    MODEL_PATH = r"/workspace/share_data/base_llms/Qwen1.5-14B-Chat"
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 
     # Sampling参数
     sampling_params = SamplingParams(
