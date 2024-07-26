@@ -25,7 +25,7 @@ SYSTEM_PROMPT = '''
 
 ## Constraints
 - 确保生成的问答对为中文。
-- 确保问题与段落内容紧密相关。
+- 确保问题与段落内容紧密相关并且通顺。
 - 生成的问题和回答必须宏观、有价值，脱离段落，不要生成特别细节的问题。
 - 生成的问题和回答中要严谨，名称主语完整无误，不能使用类似“本文件，表2，表A”这类似笼统以及局限的代词。
 - 回答必须直接来自段落中的信息。
@@ -72,7 +72,7 @@ def chunk_text(text: str, chunk_size: int = 4000):
 
 def make_prompt(title: str, text: str) -> str:
     prompt = f'''
-    这是{title}文件中的一个段落chunk，根据下面的段落文字提取出若干个中文的问题对：
+    这是{title}文件中的一个段落chunk，根据下面的段落文字提取出若干个中文的问题对，生成的问题和回答中要严谨，名称主语完整无误，不能使用类似“本文件，表2，表A”这类似笼统以及局限的代词。：
     
     {text}
     '''
@@ -80,10 +80,10 @@ def make_prompt(title: str, text: str) -> str:
 
 
 if __name__ == "__main__":
-    MODEL_NAME = "gpt-4o-mini"
+    MODEL_NAME = "gpt-4o"
 
     FILE_PATH = r"/share_data/data/nature_data/out_123_text_ori.jsonl"
-    OUT_PATH = r"/share_data/data/nature_data/natuer_qa.jsonl"
+    OUT_PATH = r"/share_data/data/nature_data/natuer_qa_new.jsonl"
 
     with open(FILE_PATH, 'r', encoding='utf-8') as input_file:
         documents = [json.loads(line) for line in input_file]
