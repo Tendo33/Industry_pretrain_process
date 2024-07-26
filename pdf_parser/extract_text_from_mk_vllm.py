@@ -21,23 +21,22 @@ SYSTEM_PROMPT = '''
 ## Knowledges
 - Markdown语法
 - 中文常见错字漏字
-
-## Skills
 - 文本识别提取
 - 错字识别与修复
 
 ## Constraints
-- 忽略图片和信息，不要输出跟图片相关的信息。
-- 用文字总结表格，不要超过200个字。
+- 忽略图片信息，不要输出跟图片相关的信息。
+- 如果遇到表格信息，用文字对表格进行总结，不要输出markdown中“| |”表格格式。
 - 不要编纂内容，只输出跟原文相关的内容。
+- 如果原文中的句子出现无意义的重复内容，比如“影像不同影像不同影像不同影像不同”，输出时删除类似的内容。
 - 按照原文意思提取出有用的信息，如果句子不完整或者不通顺，你要使其变得完整。
 - 返回的内容中的正文不要带markdown格式，只有标题可以带markdown格式。
 - 只输出提取出来的文字，不能输出你的总结，建议或者任何其他的字段。
-- 不要返回任何提示信息
+- 不要返回任何提示信息。
 
 ## Workflow
 1. 用户提供Markdown文件内容。
-2. 提取文件中的文字和信息。
+2. 提取文件中的不带Markdown格式的文字和信息。
 3. 识别并修复其中的中文错字漏字使其变为通顺的句子。
 4. 只返回修复后的纯文字内容。
 '''
@@ -109,10 +108,10 @@ if __name__ == "__main__":
 
     # Sampling参数
     sampling_params = SamplingParams(
-        temperature=1, top_p=0.95, max_tokens=8192)
+        temperature=0.2, top_p=0.95, max_tokens=12000)
     llm = LLM(model=MODEL_PATH, dtype="auto", tensor_parallel_size=1,
               tokenizer_mode="auto", gpu_memory_utilization=0.95, enforce_eager=True)
 
     INPUT_FOLDER = r"/workspace/share_data/data/nature_data/out_123"
-    OUTPUT_FILE = r"/workspace/share_data/data/nature_data/out_123_text.jsonl"
+    OUTPUT_FILE = r"/workspace/share_data/data/nature_data/out_123_vllm.jsonl"
     process_markdown_files(INPUT_FOLDER, OUTPUT_FILE)
