@@ -10,7 +10,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 SYSTEM_PROMPT = '''
 ## Background
-你是一个内容分析助手，你的任务是接收用户输入的段落，然后根据段落内容生成一个严谨的问答对。
+你是一个内容分析助手，你的任务是接收用户输入的文件名和段落，然后根据段落内容生成一个严谨的问答对。
 
 ## Goals
 - 读取并分析用户输入的段落。
@@ -60,6 +60,7 @@ def model_infer(system_prompt: str, user_prompt: str, model_name: str, temperatu
         ],
         temperature=temperature
     )
+    output = ""
     if response.choices[0].message.content:
         output = response.choices[0].message.content.strip()
     return output
@@ -69,9 +70,9 @@ def chunk_text(text: str, chunk_size: int = 4000):
     return [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
 
 
-def make_prompt(text: str) -> str:
+def make_prompt(title: str, text: str) -> str:
     prompt = f'''
-    根据下面的段落文字提取出若干个中文的问题对：
+    这是{title}文件中的一个段落chunk，根据下面的段落文字提取出若干个中文的问题对：
     
     {text}
     '''
@@ -79,7 +80,7 @@ def make_prompt(text: str) -> str:
 
 
 if __name__ == "__main__":
-    MODEL_NAME = "gpt-4o"
+    MODEL_NAME = "gpt-4o-mini"
 
     FILE_PATH = r"/share_data/data/nature_data/out_123_text_ori.jsonl"
     OUT_PATH = r"/share_data/data/nature_data/natuer_qa.jsonl"
@@ -93,9 +94,9 @@ if __name__ == "__main__":
             title = document.get("title", "")
             chunks = chunk_text(text=text, chunk_size=6000)
             for chunk in chunks:
-                user_prompt = make_prompt(chunk)
+                user_prompt = make_prompt(title=title, text=chunk)
                 output = model_infer(
-                    SYSTEM_PROMPT, user_prompt, MODEL_NAME, temperature=0.5)
+                    SYSTEM_PROMPT, user_prompt, MODEL_NAME, temperature=0.8)
                 print(output)
 
                 output_jsonl = output.split('\n')
