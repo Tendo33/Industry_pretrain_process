@@ -8,7 +8,6 @@ from typing import Tuple, List
 # Load environment variables from .env file
 dotenv.load_dotenv()
 
-
 def load_environment_variables() -> Tuple[str, str]:
     """Load API key and base URL from environment variables.
 
@@ -19,7 +18,6 @@ def load_environment_variables() -> Tuple[str, str]:
     base_url = os.getenv('OPENAI_API_BASE')
     return api_key, base_url
 
-
 def create_output_directory(output_dir: str) -> None:
     """Create output directory if it does not exist.
 
@@ -28,7 +26,6 @@ def create_output_directory(output_dir: str) -> None:
     """
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-
 
 def process_pdf_file(pdf_path: str, output_dir: str, api_key: str, base_url: str) -> Tuple[str, List[str]]:
     """Process a PDF file and extract content and images.
@@ -52,7 +49,6 @@ def process_pdf_file(pdf_path: str, output_dir: str, api_key: str, base_url: str
     )
     return content, image_paths
 
-
 def convert_md_to_json(md_path: str, json_path: str) -> None:
     """Convert a Markdown file to JSON format.
 
@@ -65,7 +61,6 @@ def convert_md_to_json(md_path: str, json_path: str) -> None:
                             text=True, capture_output=True)
     print(result.stdout)
     print(result.stderr)
-
 
 def process_pdfs_in_directory(directory: str, api_key: str, base_url: str) -> None:
     """Process all PDF files in a directory.
@@ -121,7 +116,6 @@ def main(pdf_directory: str) -> None:
     except ValueError as e:
         print(e)
 
-
 if __name__ == '__main__':
-    pdf_directory = r'/home/sunjinf/github_projet/nature_data/origin_pdf_third'
+    pdf_directory = r'/home/sunjinf/github_projet/nature_data/papers_1'
     main(pdf_directory)
