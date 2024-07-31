@@ -1,8 +1,7 @@
-import jionlp
 from utils.file_clean_util import extract_key_information
 from utils.content_clean_util import pretrain_base_clean
 from utils.save_file import save_to_jsonl
-import matplotlib.pyplot as plt
+
 
 
 def create_temp_dict(content_list: list[str], lang_score_list: list[float],
