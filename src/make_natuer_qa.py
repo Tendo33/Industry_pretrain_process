@@ -82,8 +82,8 @@ def make_prompt(title: str, text: str) -> str:
 if __name__ == "__main__":
     MODEL_NAME = "gpt-4o"
 
-    FILE_PATH = r"/share_data/data/nature_data/out_123_text_ori.jsonl"
-    OUT_PATH = r"/share_data/data/nature_data/natuer_qa_new.jsonl"
+    FILE_PATH = r"/share_data/data/nature_data/out_4_text_ori.jsonl"
+    OUT_PATH = r"/share_data/data/nature_data/nature_qa_4.jsonl"
 
     with open(FILE_PATH, 'r', encoding='utf-8') as input_file:
         documents = [json.loads(line) for line in input_file]

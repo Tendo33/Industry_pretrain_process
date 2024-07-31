@@ -2,13 +2,6 @@ import json
 import os
 from utils.save_file import save_to_jsonl
 
-keywords = [
-    "矿业", "石油", "天然气", "森林", "水资源", "煤炭", "可再生能源",
-    "矿产", "开采", "地质", "水电", "风能", "太阳能", "农业",
-    "渔业", "林业", "矿物", "资源开采", "环境保护"
-]
-
-
 def extract_wiki_info(file_path: str) -> list[dict]:
     all_data_list = []
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -35,9 +28,39 @@ def extract_wiki_info(file_path: str) -> list[dict]:
             entry_info["content"] = entry_info["content"].strip()
             all_data_list.append(entry_info)
     return all_data_list
+
+
+def clean_wiki_data(wiki_data: dict) -> dict:
+    content = wiki_data['content']
+    content_list = content.split('\n')
+    cleaned_content = []
+    skip_next = False
+
+    for i in range(len(content_list)):
+        if skip_next:
+            skip_next = False
+            continue
+
+        if content_list[i].startswith('=='):
+            if i + 1 < len(content_list) and content_list[i + 1].startswith('=='):
+                skip_next = True
+                continue
+            elif i == len(content_list) - 1 or "外部连结" in content_list[i]:
+                break
+
+            cleaned_content.append(f"{content_list[i].strip('=').strip()}:")
+        elif "外部连结" in content_list[i] or "参考文献" in content_list[i] or "#>Documentation at" in content_list[i]:
+            break
+        else:
+            cleaned_content.append(content_list[i].strip('*').strip())
+
+    wiki_data['content'] = '\n'.join(cleaned_content)
+    return wiki_data
+
 def main(file_path: str, out_path: str) -> None:
     all_data_list = extract_wiki_info(file_path)
-    save_to_jsonl(all_data_list, out_path)
+    cleaned_data_list = [clean_wiki_data(data) for data in all_data_list]
+    save_to_jsonl(cleaned_data_list, out_path)
 
 if __name__ == '__main__':
     file_path = r"/workspace/share_data/data/MNBVC/wiki_filter/20230198.jsonl"
