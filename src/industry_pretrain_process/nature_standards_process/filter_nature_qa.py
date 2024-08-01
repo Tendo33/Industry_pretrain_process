@@ -5,7 +5,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from vllm import LLM, SamplingParams
 
 # os.environ["NCCL_NVLS_ENABLE"] = "0"
-os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 BATCH_SIZE = 128
 
@@ -61,7 +61,7 @@ def apply_template(text: str) -> str:
 
 
 def make_user_prompt(text: str) -> str:
-    prompt = f"""请鉴定以下内容：
+    prompt = f"""请对以下问答对进行判定，并根据评估结果，返回数字1（合格）或数字0（不合格）。：
     '''
     {text}
     '''
@@ -72,9 +72,8 @@ def make_user_prompt(text: str) -> str:
 def process_documents_in_batch(documents, start_index, end_index, llm, sampling_params):
 
     batch_documents = documents[start_index:end_index]
-    # batch_documents = [document["text"]
-    #                    for document in batch_documents]  # 智源数据集的字段是text
-    batch_documents_content = [document["content"]
+    # print(batch_documents)
+    batch_documents_content = [document
                                for document in batch_documents]  # wiki 数据集的字段是content
     batch_queries = []
 
@@ -100,8 +99,9 @@ def process_documents_in_batch(documents, start_index, end_index, llm, sampling_
 
 if __name__ == "__main__":
     # 模型和tokenizer路径
-    MODEL_PATH = r"/workspace/share_data/base_llms/Qwen2-7B-Instruct"
+    # MODEL_PATH = r"/workspace/share_data/base_llms/Qwen2-7B-Instruct"
     MODEL_PATH = r"/workspace/share_data/base_llms/Qwen1.5-14B-Chat"
+    MODEL_PATH = r"/workspace/share_data/base_llms/Qwen2-72B-Instruct-AWQ"
     tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 
     # Sampling参数
@@ -111,8 +111,8 @@ if __name__ == "__main__":
               tokenizer_mode="auto", gpu_memory_utilization=0.95, enforce_eager=True)
 
     # 文件路径
-    INPUT_FILE_PATH = r"/workspace/share_data/data/pretrain_data/wiki_filter_all_new.jsonl"
-    OUTPUT_FILE_PATH = r"/workspace/share_data/data/pretrain_data/wiki_nature_all.jsonl"
+    INPUT_FILE_PATH = r"/workspace/share_data/data/nature_data/nature_qa_123.jsonl"
+    OUTPUT_FILE_PATH = r"/workspace/share_data/data/nature_data/nature_qa_123_filter.jsonl"
     # 读取文件内容
     with open(INPUT_FILE_PATH, 'r', encoding='utf-8') as input_file:
         documents = [json.loads(line) for line in input_file]
