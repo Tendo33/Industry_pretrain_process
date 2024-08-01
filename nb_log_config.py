@@ -39,8 +39,9 @@ DISPLAY_BACKGROUD_COLOR_IN_CONSOLE = True  # 在控制台是否显示彩色块�
 AUTO_PATCH_PRINT = True  # 是否自动打print的猴子补丁，如果打了猴子补丁，print自动变色和可点击跳转。
 
 # 以下是屏蔽控制台所谓的烦人提示项,如果要关闭,先了解下这三个提示是什么,有的pythoner又菜又爱屏蔽提示,然后不知道为什么,这样的人太烦人了.
-SHOW_PYCHARM_COLOR_SETINGS = True  # 有的人很反感启动代码时候提示教你怎么优化pycahrm控制台颜色，可以把这里设置为False  (怕提示颜色设置打扰你又不懂pycharm和python的颜色原理,就别抱怨颜色瞎眼)
-SHOW_NB_LOG_LOGO = True  # 有的人反感启动代码时候打印nb_log 的logo图形,可以设置为False
+# 有的人很反感启动代码时候提示教你怎么优化pycahrm控制台颜色，可以把这里设置为False  (怕提示颜色设置打扰你又不懂pycharm和python的颜色原理,就别抱怨颜色瞎眼)
+SHOW_PYCHARM_COLOR_SETINGS = False
+SHOW_NB_LOG_LOGO = False  # 有的人反感启动代码时候打印nb_log 的logo图形,可以设置为False
 SHOW_IMPORT_NB_LOG_CONFIG_PATH = True  # 是否打印读取的nb_log_config.py的文件位置.不懂pythonpath,不懂python导入模块机制的人,别屏蔽了,学习下  https://github.com/ydf0509/pythonpathdemo
 
 WHITE_COLOR_CODE = 37  # 不同pycharm版本和主题,有的对白颜色生效的代号是97,有的是37, 这里可以设置 37和97, 如2023 pycahrm的console color,白颜色捕获的是97,如果这里写37,调节pycharm颜色没法调.
@@ -52,7 +53,7 @@ LOG_FILE_BACKUP_COUNT = 10  # 对同一个日志文件，默认最多备份几�
 
 LOG_PATH = os.getenv("LOG_PATH")  # 优先从环境变量获取,启动代码之前可以 export LOG_PATH = '/你的日志目录/'
 if not LOG_PATH:
-    LOG_PATH = '/pythonlogs'  # 默认的日志文件夹,如果不写明磁盘名，则是项目代码所在磁盘的根目录下的/pythonlogs
+    LOG_PATH = './logs'  # 默认的日志文件夹,如果不写明磁盘名，则是项目代码所在磁盘的根目录下的/pythonlogs
     # LOG_PATH = Path(__file__).absolute().parent / Path("pythonlogs")   #这么配置就会自动在你项目的根目录下创建pythonlogs文件夹了并写入。
     if os.name == 'posix':  # linux非root用户和mac用户无法操作 /pythonlogs 文件夹，没有权限，默认修改为   home/[username]  下面了。例如你的linux用户名是  xiaomin，那么默认会创建并在 /home/xiaomin/pythonlogs文件夹下写入日志文件。
         home_path = os.environ.get("HOME", '/')  # 这个是获取linux系统的当前用户的主目录，不需要亲自设置
