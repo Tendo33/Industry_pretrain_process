@@ -1,4 +1,3 @@
-import copy
 import json
 import os
 from magic_pdf.pipe.TXTPipe import TXTPipe
