@@ -1,87 +1,125 @@
+import copy
+import json
 import os
+from magic_pdf.pipe.TXTPipe import TXTPipe
+from magic_pdf.pipe.OCRPipe import OCRPipe
 from magic_pdf.pipe.UNIPipe import UNIPipe
 from magic_pdf.rw.DiskReaderWriter import DiskReaderWriter
 import magic_pdf.model as model_config
+
 from nb_log import get_logger
 
 logger = get_logger('mineru_folder', formatter_template=5,)
 os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 
-
 # 使用内部模型
 model_config.__use_inside_model__ = True
 
-def process_pdf_file(file_path: str, image_dir: str, model_json: list = []):
+
+def json_md_dump(pipe, md_writer, pdf_name, content_list, md_content):
+    """将解析结果写入JSON和Markdown文件"""
+    output_files = {
+        f"{pdf_name}_model.json": pipe.model_list,
+        f"{pdf_name}_middle.json": pipe.pdf_mid_data,
+        f"{pdf_name}_content_list.json": content_list,
+        f"{pdf_name}.md": md_content
+    }
+    
+    for file_name, content in output_files.items():
+        md_writer.write(content=json.dumps(content, ensure_ascii=False, indent=4)
+                        if file_name.endswith('.json') else content, path=file_name)
+
+
+def pdf_parse_main(pdf_path: str, parse_method: str = 'auto', model_json_path: str = None, is_json_md_dump: bool = True, output_dir: str = None):
     """
-    处理单个PDF文件，将其内容转换为Markdown格式。
-    
-    参数：
-    - file_path: PDF文件路径
-    - image_dir: 保存图像的目录
-    - model_json: 模型配置的JSON列表
-    
-    返回：
-    - md_content: 生成的Markdown内容
+    执行从 pdf 转换到 json、md 的过程，输出 md 和 json 文件到指定目录
+
+    :param pdf_path: .pdf 文件的路径
+    :param parse_method: 解析方法，可选 'auto'、'ocr'、'txt'，默认 'auto'
+    :param model_json_path: 已存在的模型数据文件路径
+    :param is_json_md_dump: 是否将解析后的数据写入到 .json 和 .md 文件中，默认 True
+    :param output_dir: 输出结果的目录地址，默认与 pdf 文件相同目录
     """
     try:
-        # 读取PDF文件
-        with open(file_path, "rb") as pdf_file:
-            pdf_bytes = pdf_file.read()
+        # 获取pdf文件名（不含扩展名）
+        pdf_name = os.path.splitext(os.path.basename(pdf_path))[0]
+        # 设置输出路径
+        output_path = os.path.join(
+            output_dir or os.path.dirname(pdf_path), pdf_name)
+        output_image_path = os.path.join(output_path, 'images')
+        image_path_parent = os.path.basename(output_image_path)
 
-        # 初始化图像写入器
-        image_writer = DiskReaderWriter(image_dir)
-        json_useful_key = {"_pdf_type": "", "model_list": model_json}
+        # 创建输出目录和图像目录
+        os.makedirs(output_path, exist_ok=True)
+        os.makedirs(output_image_path, exist_ok=True)
 
-        # 初始化UNIPipe对象并进行处理
-        pipe = UNIPipe(pdf_bytes, json_useful_key, image_writer)
+        # 读取pdf文件的二进制数据
+        with open(pdf_path, "rb") as f:
+            pdf_bytes = f.read()
+
+        # 如果提供了模型数据文件路径，则加载模型数据
+        model_json = json.load(
+            open(model_json_path, "r", encoding="utf-8")) if model_json_path else []
+
+        # 创建读写器对象
+        image_writer, md_writer = DiskReaderWriter(
+            output_image_path), DiskReaderWriter(output_path)
+
+        # 根据解析方法选择相应的处理管道
+        pipe = {
+            "auto": lambda: UNIPipe(pdf_bytes, {"_pdf_type": "", "model_list": model_json}, image_writer),
+            "txt": lambda: TXTPipe(pdf_bytes, model_json, image_writer),
+            "ocr": lambda: OCRPipe(pdf_bytes, model_json, image_writer)
+        }.get(parse_method, lambda: None)()
+
+        if not pipe:
+            logger.error("未知解析方法，仅支持 auto, ocr, txt")
+            return
+
+        # 执行分类
         pipe.pipe_classify()
-        """如果没有传入有效的模型数据，则使用内置model解析"""
-        if len(model_json) == 0:
-            if model_config.__use_inside_model__:
-                pipe.pipe_analyze()
-            else:
-                logger.error("need model list input")
-                exit(1)
+
+        # 如果没有提供模型数据且使用内部模型，则进行解析
+        if not model_json and model_config.__use_inside_model__:
+            pipe.pipe_analyze()
+        elif not model_json:
+            logger.error("需要模型列表输入")
+            return
+
+        # 执行解析
         pipe.pipe_parse()
-        md_content = pipe.pipe_mk_markdown(image_dir, drop_mode="none")
 
-        return md_content
+        # 生成统一格式和Markdown格式的内容
+        content_list = pipe.pipe_mk_uni_format(
+            image_path_parent, drop_mode="none")
+        md_content = pipe.pipe_mk_markdown(image_path_parent, drop_mode="none")
+
+        # 如果需要，写入结果到JSON和Markdown文件
+        if is_json_md_dump:
+            json_md_dump(pipe, md_writer, pdf_name, content_list, md_content)
 
     except Exception as e:
-        logger.exception(f"处理文件 {file_path} 时出现异常：{e}")
-        return None
+        logger.exception(e)
 
 
-def process_pdf_folder(folder_path: str, image_dir: str, model_json: list = []):
+def process_all_pdfs_in_directory(directory: str, parse_method: str = 'auto', model_json_path: str = None, is_json_md_dump: bool = True, output_dir: str = None):
     """
-    处理文件夹中的所有PDF文件，将其内容转换为Markdown格式。
-    
-    参数：
-    - folder_path: PDF文件夹路径
-    - image_dir: 保存图像的目录
-    - model_json: 模型配置的JSON列表（可选）
+    处理目录中的所有 PDF 文件
+
+    :param directory: 要处理的目录路径
+    :param parse_method: 解析方法，可选 'auto'、'ocr'、'txt'，默认 'auto'
+    :param model_json_path: 已存在的模型数据文件路径
+    :param is_json_md_dump: 是否将解析后的数据写入到 .json 和 .md 文件中，默认 True
+    :param output_dir: 输出结果的目录地址，默认与每个 pdf 文件相同目录
     """
-    try:
-        for filename in os.listdir(folder_path):
-            if filename.endswith(".pdf"):
-                file_path = os.path.join(folder_path, filename)
-                md_content = process_pdf_file(file_path, image_dir, model_json)
-                if md_content is not None:
-                    output_md_path = os.path.splitext(file_path)[0] + ".md"
-
-                    # 将生成的Markdown内容写入文件
-                    with open(output_md_path, "w", encoding="utf-8") as md_file:
-                        md_file.write(md_content)
-
-                    print(
-                        f"处理完成 {filename} 并保存Markdown内容至 {output_md_path}")
-    except Exception as e:
-        logger.exception(f"处理文件夹 {folder_path} 时出现异常：{e}")
+    for root, _, files in os.walk(directory):
+        for file in files:
+            if file.lower().endswith('.pdf'):
+                pdf_path = os.path.join(root, file)
+                pdf_parse_main(pdf_path, parse_method,
+                               model_json_path, is_json_md_dump, output_dir)
 
 
-if __name__ == "__main__":
-    pdf_folder_path = r"/workspace/sunjinfeng/github_projet/Industry_pretrain_process/data/test_data"
-    local_image_dir = r"/workspace/sunjinfeng/github_projet/Industry_pretrain_process/data/test_data_output"
-
-    # 处理PDF文件夹
-    process_pdf_folder(pdf_folder_path, local_image_dir)
+if __name__ == '__main__':
+    pdf_directory = r"xxx"
+    process_all_pdfs_in_directory(pdf_directory)
