@@ -113,8 +113,8 @@ if __name__ == "__main__":
               tokenizer_mode="auto", gpu_memory_utilization=0.95, enforce_eager=True)
 
     # 文件路径
-    INPUT_FILE_PATH = r"/workspace/share_data/data/nature_data/nature_qa_123.jsonl"
-    OUTPUT_FILE_PATH = r"/workspace/share_data/data/nature_data/nature_qa_123_filter.jsonl"
+    INPUT_FILE_PATH = r"/workspace/share_data/data/nature_data/nature_qa_1234.jsonl"
+    OUTPUT_FILE_PATH = r"/workspace/share_data/data/nature_data/nature_qa_1234_filter.jsonl"
     # 读取文件内容
     with open(INPUT_FILE_PATH, 'r', encoding='utf-8') as input_file:
         documents = [json.loads(line) for line in input_file]
