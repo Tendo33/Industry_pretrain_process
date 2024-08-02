@@ -120,5 +120,5 @@ def process_all_pdfs_in_directory(directory: str, parse_method: str = 'auto', mo
 
 
 if __name__ == '__main__':
-    pdf_directory = r"xxx"
+    pdf_directory = r"/workspace/sunjinfeng/github_projet/Industry_pretrain_process/data/test_data"
     process_all_pdfs_in_directory(pdf_directory)
