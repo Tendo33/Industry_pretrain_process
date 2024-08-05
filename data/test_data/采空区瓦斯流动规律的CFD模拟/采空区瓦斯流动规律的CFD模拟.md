@@ -108,7 +108,7 @@ $$
 
 为了现场测定采空区瓦斯分布规律，采用改进的采空区气体监测方案，并布置了束管监测系统，对采空区气体浓度进行了监测．图１为１４１１８工作面从开切眼推过$350\,\mathrm{~m~}$后，工作面后方风巷侧的采空区管束监测点的气样分析结果．该结果表明，渗入采空区的氧气含量是非常高的，即便在工作面后方$100\textrm{m}$的风  
 
-![](/workspace/sunjinfeng/github_projet/Industry_pretrain_process/data/test_data_output/69b35957d5252d728792e06f0ae6843f37cf01d89b2914052c9e90ccc606c913.jpg)  
+![](images/69b35957d5252d728792e06f0ae6843f37cf01d89b2914052c9e90ccc606c913.jpg)  
 图１　张北矿１１４１８工作面采空区气体浓度分布曲线Ｆｉｇ１　Ｔｈｅｃｕｒｖｅｓｏｆｇｏａｆｇａｓｃｏｎｃｅｎｔｒａｔｉｏｎｄｉｓｔｒｉｂｕｔｉｏｎａｔ Ｐａｎｅｌ１１４１８ｏｆＺｈａｎｇｂｅｉｃｏａｌｍｉｎｅ  
 
 巷侧采空区也是如此．采空区瓦斯在向采空区后方方向有增大的趋势．  
@@ -119,10 +119,10 @@ $$
 
 图３为在开采层水平的采空区气体分布规律的ＣＦＤ模拟．结果表明：采空区回风巷侧的最大瓦斯浓度可达$80\%$．进入采空区的氧气量是很高的，尤其是在工作面机巷侧；在工作面后方$300\,\mathrm{~m~}$处进风巷侧的氧气浓度可超过$12\%$，而回风巷侧工作面后方$150\,\mathrm{~m~}$处有氧气聚集，这与现场实测数据相吻合．  
 
-![](/workspace/sunjinfeng/github_projet/Industry_pretrain_process/data/test_data_output/86c7b0255f3aac43edb0c2377bfab3704619bb894e5582ba0495249ac41c09a9.jpg)  
+![](images/86c7b0255f3aac43edb0c2377bfab3704619bb894e5582ba0495249ac41c09a9.jpg)  
 图２　１１４１８工作面基本的ＣＦＤ模型几何特征Ｆｉｇ２　ＴｈｅｂａｓｉｃｇｅｏｍｅｔｒｙｏｆＣＦＤｍｏｄｅｌｏｆＰａｎｅｌ１１４１８  
 
-![](/workspace/sunjinfeng/github_projet/Industry_pretrain_process/data/test_data_output/2f130289df9ee4866b21b9698f3124bf1f2a618898d36dc4c6296a8d7b69fc6c.jpg)  
+![](images/2f130289df9ee4866b21b9698f3124bf1f2a618898d36dc4c6296a8d7b69fc6c.jpg)  
 图３　１４１１８工作面采空区气体分布的ＣＦＤ模拟Ｆｉｇ３　ＧｏａｆｇａｓｄｉｓｔｒｉｂｕｔｉｏｎｉｎｔｈｅＣＦＤｍｏｄｅｌｏｆＰａｎｅｌ１１４１８ 抽放钻孔没打开  
 
 # ３　１１４１８工作面钻孔抽放条件下采空区瓦斯分布  
@@ -135,7 +135,7 @@ $$
 
 （１）采空区钻孔在中等抽放负压（$.40\sim60\ \mathrm{kPa}$下，在工作面推过钻孔后，可得到的瓦斯流量为２０  
 
-![](/workspace/sunjinfeng/github_projet/Industry_pretrain_process/data/test_data_output/e31f3a5f2035d0d997c1422501426e689fafdc2c7c0bf54e7a2729d5c1cfd64e.jpg)  
+![](images/e31f3a5f2035d0d997c1422501426e689fafdc2c7c0bf54e7a2729d5c1cfd64e.jpg)  
 图４　抽放和未抽放条件下采空区瓦斯分布的对比Ｆｉｇ４　Ｔｈｅｃｏｍｐａｒｉｓｉｏｎｏｆｇｏａｆｇａｓｄｉｓｔｒｉｂｕｔｉｏｎ  
 
 $\sim\!40\,\mathrm{\m}^{3}/\mathrm{min}$ ／ｍｉｎ ， 浓度为 $80\%$ ； 所抽得的氧气浓 度为$2\%\sim\!7\%$，预计能维持一个稳定的抽放流量 ．  
@@ -146,7 +146,7 @@ $\sim\!40\,\mathrm{\m}^{3}/\mathrm{min}$ ／ｍｉｎ ， 浓度为 $80\%$ ； �
 
 （４）应同时联合布置靠近工作面和深入采空区的瓦斯抽放钻孔，以提高整体的瓦斯抽放  
 
-![](/workspace/sunjinfeng/github_projet/Industry_pretrain_process/data/test_data_output/50d277f97f8c27732d0d89e176a5d2209e584d95383879b0e57e743802b1866d.jpg)  
+![](images/50d277f97f8c27732d0d89e176a5d2209e584d95383879b0e57e743802b1866d.jpg)  
 效果，并应对采空区深处的钻孔采取连续、中等流量抽放的方式  
 
 # ４　结　　论  

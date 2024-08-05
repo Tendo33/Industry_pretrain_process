@@ -34,6 +34,17 @@ def process_pdfs_in_directory(
     for filename in os.listdir(directory):
         if filename.endswith(".pdf"):
             pdf_path = os.path.join(directory, filename)
+            base_filename = os.path.splitext(filename)[0]
+            folder_path = os.path.join(
+                "/workspace/sunjinfeng/github_projet/nature_data/MinerU/magic-pdf",
+                base_filename,
+            )
+
+            # 检查是否存在同名文件夹
+            if os.path.exists(folder_path):
+                logger.info(f"文件 {pdf_path} 已被处理，跳过")
+                continue
+
             logger.error(f"正在处理文件: {pdf_path}")
 
             # 构建命令
