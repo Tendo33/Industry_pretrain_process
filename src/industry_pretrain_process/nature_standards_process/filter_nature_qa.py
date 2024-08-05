@@ -108,7 +108,7 @@ if __name__ == "__main__":
 
     # Sampling参数
     sampling_params = SamplingParams(
-        temperature=0.2, top_p=0.95, max_tokens=32000)
+        temperature=0.2, top_p=0.90, max_tokens=32000)
     llm = LLM(model=MODEL_PATH, dtype="auto", tensor_parallel_size=1,
               tokenizer_mode="auto", gpu_memory_utilization=0.95, enforce_eager=True)
 
