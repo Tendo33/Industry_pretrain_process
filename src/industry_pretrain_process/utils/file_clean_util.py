@@ -7,7 +7,9 @@ from typing import Union, List
 
 # 删除文件名中不包含关键词的文件
 # keywords_list = ["国家", "国务院", "国资委", "海关总署", "交通运输部", "教育部", "民政部", "办公厅", "农业农村部", "人力资源社会保障部", "商务部", "水利部", "统计局", "文化和旅游部", "中国银监会", "住房和城乡建设部"]
-def delete_files_not_containing_keywords(folder_path: str, keywords: list) -> None:
+def delete_files_not_containing_keywords(
+    folder_path: str, keywords: list
+) -> None:
     files = os.listdir(folder_path)
 
     for file_name in files:
@@ -36,7 +38,9 @@ def delete_files_containing_keywords(folder_path: str, keywords: list) -> None:
 
 # 删除不以特殊关键字开头的文件
 # keywords_list = ["国家", "国务院", "国资委", "海关总署", "交通运输部", "教育部", "工业和信息化部", "民政部", "农业农村部", "人力资源社会保障部", "商务部", "水利部", "统计局", "文化和旅游部", "中国银监会", "住房和城乡建设部", "最高人民法院", "自然资源部", "总局办公厅"]
-def delete_files_not_starting_with_keywords(folder_path: str, keywords: list) -> None:
+def delete_files_not_starting_with_keywords(
+    folder_path: str, keywords: list
+) -> None:
     files = os.listdir(folder_path)
 
     for file_name in files:
@@ -50,7 +54,7 @@ def delete_files_not_starting_with_keywords(folder_path: str, keywords: list) ->
 # keywords_list = [".doc", ".docx", ".pdf", ".xls", ".xlsx", ".ppt", ".pptx", ".txt"]
 def delete_files_not_ending_with_keywords(folder_path: str, keywords: list):
     # 获取文件夹中所有文件和文件夹
-    all_items = glob.glob(os.path.join(folder_path, '*'))
+    all_items = glob.glob(os.path.join(folder_path, "*"))
 
     for item_path in all_items:
         if os.path.isfile(item_path):  # 检查是否为文件
@@ -87,13 +91,13 @@ def delete_few_sentences_files(folder_path: str, num: int):
         file_path = os.path.join(folder_path, file_name)
 
         # 检查文件是否以 ".jsonl" 结尾
-        if file_name.endswith('.jsonl'):
+        if file_name.endswith(".jsonl"):
             # 读取JSON文件
-            with open(file_path, 'r', encoding='utf-8') as json_file:
+            with open(file_path, "r", encoding="utf-8") as json_file:
                 data = json.load(json_file)
 
                 # 检查content字段中换行符的数量
-                newline_count = data.get('content', '').count('\n')
+                newline_count = data.get("content", "").count("\n")
 
                 # 如果换行符少于10个，删除文件
                 if newline_count < num:
@@ -136,7 +140,7 @@ def categories_count(titles: list[str]) -> dict:
         "批复": 0,
         "函": 0,
         "决议": 0,
-        "决定": 0
+        "决定": 0,
     }
     for title in titles:
         for category in categories_dict:
@@ -152,15 +156,15 @@ def categories_count(titles: list[str]) -> dict:
 def extract_txt_content(folder_path: str) -> list[dict]:
     all_txt_data = []
     for file_name in os.listdir(folder_path):
-        if file_name.endswith('.txt'):
+        if file_name.endswith(".txt"):
             file_path = os.path.join(folder_path, file_name)
 
-            with open(file_path, 'r', encoding='utf-8') as file:
+            with open(file_path, "r", encoding="utf-8") as file:
                 content = file.read()
                 txt_data = {
                     "file_name": file,
                     "file_path": file_path,
-                    "content": content
+                    "content": content,
                 }
                 # 将每个txt文件的数据添加到列表中
                 all_txt_data.append(txt_data)
@@ -168,7 +172,9 @@ def extract_txt_content(folder_path: str) -> list[dict]:
 
 
 # 从 jsonl 中提取 key 信息
-def extract_key_information(file_path: str, keywords: Union[str, list[str]]) -> Union[list[str], dict]:
+def extract_key_information(
+    file_path: str, keywords: Union[str, list[str]]
+) -> Union[list[str], dict]:
     if isinstance(keywords, str):
         keyword_out = []
 

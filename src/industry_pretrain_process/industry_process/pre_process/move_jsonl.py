@@ -7,7 +7,7 @@ def move_jsonl_files(source_dir, target_dir):
         os.makedirs(target_dir)
 
     for filename in os.listdir(source_dir):
-        if filename.endswith('.jsonl'):
+        if filename.endswith(".jsonl"):
             source_file = os.path.join(source_dir, filename)
             target_file = os.path.join(target_dir, filename)
 
@@ -15,9 +15,8 @@ def move_jsonl_files(source_dir, target_dir):
             print(f"Moved: {source_file} to {target_file}")
 
 
-if __name__ == '__main__':
-
-    source_directory = r'/data/nfs/data/IndustryCorpus/chinese'
-    target_directory = r'/data/nfs/data/Industry_raw_data'
+if __name__ == "__main__":
+    source_directory = r"/data/nfs/data/IndustryCorpus/chinese"
+    target_directory = r"/data/nfs/data/Industry_raw_data"
 
     move_jsonl_files(source_directory, target_directory)

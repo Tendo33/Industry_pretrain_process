@@ -8,7 +8,8 @@ def get_logger(name: str) -> logging.Logger:
     Gets a standard logger with a stream hander to stdout.
     """
     formatter = logging.Formatter(
-        fmt="%(asctime)s - %(levelname)s - %(name)s - %(message)s", datefmt="%m/%d/%Y %H:%M:%S"
+        fmt="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
+        datefmt="%m/%d/%Y %H:%M:%S",
     )
     # 创建日志记录器
     logger = logging.getLogger(name)
@@ -19,8 +20,9 @@ def get_logger(name: str) -> logging.Logger:
     stream_handler.setFormatter(formatter)
 
     # 创建文件处理器
-    log_file_path = os.path.join(os.path.dirname(
-        __file__), 'gongwen_data_clean_project.log')
+    log_file_path = os.path.join(
+        os.path.dirname(__file__), "gongwen_data_clean_project.log"
+    )
     file_handler = logging.FileHandler(log_file_path)
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(formatter)
@@ -37,9 +39,11 @@ def title_prompt(title: str) -> str:
     return res
 
 
-def old_gw_prompt(title: str, outline: str, policy_files: list, refer_files: str) -> str:
-    pf = '\n'.join(['《' + line + '》' for line in policy_files])
-    rf = '\n'.join(refer_files)
+def old_gw_prompt(
+    title: str, outline: str, policy_files: list, refer_files: str
+) -> str:
+    pf = "\n".join(["《" + line + "》" for line in policy_files])
+    rf = "\n".join(refer_files)
     res = f'''[角色]：你是一名专业的政府公文写作专家，擅长根据提供的大纲和标题书写完整的公文。你写的公文语言表述精炼用词得体，逻辑严谨政治正确。
 [输入]：
 "大纲"：
@@ -108,17 +112,19 @@ def generate_prompt_new(title, outline, policy_files=None, refer_files=None):
 """
 '''
     else:
-        prompt += '''
+        prompt += """
 2.请根据公文的标准内容要求，撰写一篇全面且详实的公文。
-'''
+"""
 
     # 添加格式和语气要求
-    prompt += '''请按照以上要求生成完整的公文。'''
+    prompt += """请按照以上要求生成完整的公文。"""
 
     return prompt
 
 
-def new_gw_prompt(title: str, outline: str, policy_files: str, refer_files: str) -> str:
+def new_gw_prompt(
+    title: str, outline: str, policy_files: str, refer_files: str
+) -> str:
     res = f'''你是一名专业的政府公文写作专家，请严格按照"大纲"写一篇标题为《{title}》的公文,生成内容必须参考提供的"政策文件"和"参考内容"。
 "大纲"：
 """
@@ -137,7 +143,6 @@ def new_gw_prompt(title: str, outline: str, policy_files: str, refer_files: str)
 
 
 def construct_outline_prompt(title: str) -> str:
-
     res = f"[角色]：你是一名专业的政府公文写作专家，擅长根据提供的标题生成完整的公文大纲。\n[任务指令]：请按照标题《{title}》生成公文的大纲。"
     return res
 
@@ -149,22 +154,30 @@ def construct_outline_prompt_new(text: str) -> str:
 
 # 制作普通数据集
 def construct_dataset(prompt, output, system):
-    res = {"instruction": prompt,
-           "input": "", "output": output, "system": system}
+    res = {
+        "instruction": prompt,
+        "input": "",
+        "output": output,
+        "system": system,
+    }
     return res
+
 
 # 制作普通数据集
 
 
 def construct_dataset_old(prompt, output):
-    res = {"instruction": prompt,
-           "input": "", "output": output}
+    res = {"instruction": prompt, "input": "", "output": output}
     return res
+
 
 # 制作 dpo 数据集
 
 
 def construct_dpo_dataset(prompt, positive_output, negative_output):
-    res = {"instruction": prompt,
-           "input": "", "output": [positive_output, negative_output]}
+    res = {
+        "instruction": prompt,
+        "input": "",
+        "output": [positive_output, negative_output],
+    }
     return res

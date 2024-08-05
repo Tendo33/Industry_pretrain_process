@@ -3,6 +3,7 @@ import re
 import os
 import json
 from tqdm import tqdm
+
 # from transformers import AutoTokenizer
 from lmdeploy import pipeline, GenerationConfig, TurbomindEngineConfig
 
@@ -10,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-SYSTEM_PROMPT = '''
+SYSTEM_PROMPT = """
 # Role
 文本提取与错字修复助手
 
@@ -39,13 +40,13 @@ SYSTEM_PROMPT = '''
 2. 提取文件中的不带Markdown格式的文字和信息。
 3. 识别并修复其中的中文错字漏字使其变为通顺的句子。
 4. 只返回修复后的纯文字内容。
-'''
+"""
 
 
 def apply_template(text: str) -> str:
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": text}
+        {"role": "user", "content": text},
     ]
     # tokenized_chat = tokenizer.apply_chat_template(
     #     messages, tokenize=False, add_generation_prompt=True)
@@ -58,7 +59,7 @@ def construct_query(content: str) -> str:
 
 
 def split_into_chunks(text: str, chunk_size: int = 4000) -> list:
-    return [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
+    return [text[i : i + chunk_size] for i in range(0, len(text), chunk_size)]
 
 
 def process_markdown_files(input_folder: str, output_file: str):
@@ -69,7 +70,7 @@ def process_markdown_files(input_folder: str, output_file: str):
                 folder_name = os.path.basename(subdir)
                 file_path = os.path.join(subdir, file)
                 try:
-                    with open(file_path, 'r', encoding='utf-8') as f:
+                    with open(file_path, "r", encoding="utf-8") as f:
                         content = f.read()
                 except Exception as e:
                     logging.error(f"Failed to read {file_path}: {e}")
@@ -93,8 +94,8 @@ def process_markdown_files(input_folder: str, output_file: str):
                 processed_content = "".join(after_llm_list)
                 result = {"title": folder_name, "content": processed_content}
 
-                with open(output_file, 'a', encoding='utf-8') as f:
-                    f.write(json.dumps(result, ensure_ascii=False) + '\n')
+                with open(output_file, "a", encoding="utf-8") as f:
+                    f.write(json.dumps(result, ensure_ascii=False) + "\n")
 
 
 if __name__ == "__main__":
@@ -104,12 +105,15 @@ if __name__ == "__main__":
 
     # lmdeploy 配置
     backend_config = TurbomindEngineConfig(
-        tp=1, quant_policy=8, model_format="awq")
+        tp=1, quant_policy=8, model_format="awq"
+    )
     gen_config = GenerationConfig(
-        top_p=0.8, top_k=40, temperature=0.4, max_new_tokens=24000)
-    pipe = pipeline(MODEL_PATH,
-                    backend_config=backend_config)
+        top_p=0.8, top_k=40, temperature=0.4, max_new_tokens=24000
+    )
+    pipe = pipeline(MODEL_PATH, backend_config=backend_config)
 
     INPUT_FOLDER = r"/workspace/share_data/data/nature_data/out_123"
-    OUTPUT_FILE = r"/workspace/share_data/data/nature_data/out_123_text_lmd.jsonl"
+    OUTPUT_FILE = (
+        r"/workspace/share_data/data/nature_data/out_123_text_lmd.jsonl"
+    )
     process_markdown_files(INPUT_FOLDER, OUTPUT_FILE)

@@ -10,7 +10,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 BATCH_SIZE = 128
 
 # 定义系统提示语
-SYSTEM_PROMPT = '''
+SYSTEM_PROMPT = """
 # Role
 问答对鉴定专家
 
@@ -48,17 +48,17 @@ SYSTEM_PROMPT = '''
 2. 输入为{"instruction": "保管的起始时间是什么时候？", "output": "2020-7-01"}，这个问题完全不具有宏观性，因为完全不知道是什么的“保管时间”，困惑度较高，所以这个问答对是不合格的，应当返回数字0。
 3.{"instruction": "迁建点名称是什么？", "output": "测试008"}这个问题完全不具有宏观性，因为完全不知道是什么的“迁建点”，困惑度较高，应当返回数字0。
 4.{"instruction": "表O.1中，赤潮异弯藻的赤潮基准密度是多少？", "output": "表O.1中，赤潮异弯藻的赤潮基准密度是大于5×10³个/L。"}这个问题完全不具有宏观性，因为完全不知道表0.1是什么，困惑度较高，应当返回数字0。
-'''
+"""
 
 
 def apply_template(text: str) -> str:
-
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": text}
+        {"role": "user", "content": text},
     ]
     tokenized_chat = tokenizer.apply_chat_template(
-        messages, tokenize=False, add_generation_prompt=True)
+        messages, tokenize=False, add_generation_prompt=True
+    )
     return tokenized_chat
 
 
@@ -71,16 +71,17 @@ def make_user_prompt(text: str) -> str:
     return prompt
 
 
-def process_documents_in_batch(documents, start_index, end_index, llm, sampling_params):
-
+def process_documents_in_batch(
+    documents, start_index, end_index, llm, sampling_params
+):
     batch_documents = documents[start_index:end_index]
     # print(batch_documents)
-    batch_documents_content = [document
-                               for document in batch_documents]  # wiki 数据集的字段是content
+    batch_documents_content = [
+        document for document in batch_documents
+    ]  # wiki 数据集的字段是content
     batch_queries = []
 
     for document in batch_documents_content:
-
         query_text = make_user_prompt(text=document)
         formatted_query = apply_template(query_text)
         batch_queries.append(formatted_query)
@@ -90,8 +91,9 @@ def process_documents_in_batch(documents, start_index, end_index, llm, sampling_
 
     result = []
     for i, document in enumerate(batch_documents):
-        generated_text = generated_outputs[i].outputs[0].text.strip(
-            "\n").strip()
+        generated_text = (
+            generated_outputs[i].outputs[0].text.strip("\n").strip()
+        )
         print(generated_text)
         result.append(generated_text)
         print("*" * 50)
@@ -108,33 +110,49 @@ if __name__ == "__main__":
 
     # Sampling参数
     sampling_params = SamplingParams(
-        temperature=0.2, top_p=0.90, max_tokens=32000)
-    llm = LLM(model=MODEL_PATH, dtype="auto", tensor_parallel_size=1,
-              tokenizer_mode="auto", gpu_memory_utilization=0.95, enforce_eager=True)
+        temperature=0.2, top_p=0.90, max_tokens=32000
+    )
+    llm = LLM(
+        model=MODEL_PATH,
+        dtype="auto",
+        tensor_parallel_size=1,
+        tokenizer_mode="auto",
+        gpu_memory_utilization=0.95,
+        enforce_eager=True,
+    )
 
     # 文件路径
-    INPUT_FILE_PATH = r"/workspace/share_data/data/nature_data/nature_qa_1234.jsonl"
-    OUTPUT_FILE_PATH = r"/workspace/share_data/data/nature_data/nature_qa_1234_filter.jsonl"
+    INPUT_FILE_PATH = (
+        r"/workspace/share_data/data/nature_data/nature_qa_1234.jsonl"
+    )
+    OUTPUT_FILE_PATH = (
+        r"/workspace/share_data/data/nature_data/nature_qa_1234_filter.jsonl"
+    )
     # 读取文件内容
-    with open(INPUT_FILE_PATH, 'r', encoding='utf-8') as input_file:
+    with open(INPUT_FILE_PATH, "r", encoding="utf-8") as input_file:
         documents = [json.loads(line) for line in input_file]
 
     # 读取输出路径中已有的内容
     if os.path.exists(OUTPUT_FILE_PATH):
-        with open(OUTPUT_FILE_PATH, 'r', encoding='utf-8') as output_file:
+        with open(OUTPUT_FILE_PATH, "r", encoding="utf-8") as output_file:
             processed_lines = output_file.readlines()
     else:
         processed_lines = []
 
     total_docs = len(documents)
-    for start_index in tqdm(range(0, total_docs, BATCH_SIZE), total=total_docs // BATCH_SIZE, desc="Processing"):
+    for start_index in tqdm(
+        range(0, total_docs, BATCH_SIZE),
+        total=total_docs // BATCH_SIZE,
+        desc="Processing",
+    ):
         end_index = min(start_index + BATCH_SIZE, total_docs)
         if start_index < len(processed_lines):
             continue
 
         # 处理所有批次
         batch_result, batch_documents = process_documents_in_batch(
-            documents, start_index, end_index, llm, sampling_params)
+            documents, start_index, end_index, llm, sampling_params
+        )
 
         filtered_documents = []
         # 筛选出包含数字1的文档
@@ -147,7 +165,8 @@ if __name__ == "__main__":
         else:
             print(f"{len(filtered_documents)} documents are filtered.")
             # 将筛选出的文档写入文件
-            with open(OUTPUT_FILE_PATH, 'a', encoding='utf-8') as output_file:
+            with open(OUTPUT_FILE_PATH, "a", encoding="utf-8") as output_file:
                 for document in filtered_documents:
-                    output_file.write(json.dumps(
-                        document, ensure_ascii=False) + '\n')
+                    output_file.write(
+                        json.dumps(document, ensure_ascii=False) + "\n"
+                    )

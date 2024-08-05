@@ -8,15 +8,17 @@ from typing import Tuple, List
 # Load environment variables from .env file
 dotenv.load_dotenv()
 
+
 def load_environment_variables() -> Tuple[str, str]:
     """Load API key and base URL from environment variables.
 
     Returns:
         Tuple[str, str]: API key and base URL.
     """
-    api_key = os.getenv('OPENAI_API_KEY')
-    base_url = os.getenv('OPENAI_API_BASE')
+    api_key = os.getenv("OPENAI_API_KEY")
+    base_url = os.getenv("OPENAI_API_BASE")
     return api_key, base_url
+
 
 def create_output_directory(output_dir: str) -> None:
     """Create output directory if it does not exist.
@@ -27,7 +29,10 @@ def create_output_directory(output_dir: str) -> None:
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-def process_pdf_file(pdf_path: str, output_dir: str, api_key: str, base_url: str) -> Tuple[str, List[str]]:
+
+def process_pdf_file(
+    pdf_path: str, output_dir: str, api_key: str, base_url: str
+) -> Tuple[str, List[str]]:
     """Process a PDF file and extract content and images.
 
     Args:
@@ -44,10 +49,11 @@ def process_pdf_file(pdf_path: str, output_dir: str, api_key: str, base_url: str
         output_dir=output_dir,
         api_key=api_key,
         base_url=base_url,
-        model='gpt-4o',
-        gpt_worker=6
+        model="gpt-4o",
+        gpt_worker=6,
     )
     return content, image_paths
+
 
 def convert_md_to_json(md_path: str, json_path: str) -> None:
     """Convert a Markdown file to JSON format.
@@ -57,12 +63,16 @@ def convert_md_to_json(md_path: str, json_path: str) -> None:
         json_path (str): Path to save the JSON output.
     """
     command = f'md_to_json -o "{json_path}" "{md_path}"'
-    result = subprocess.run(command, shell=True, check=True,
-                            text=True, capture_output=True)
+    result = subprocess.run(
+        command, shell=True, check=True, text=True, capture_output=True
+    )
     print(result.stdout)
     print(result.stderr)
 
-def process_pdfs_in_directory(directory: str, api_key: str, base_url: str) -> None:
+
+def process_pdfs_in_directory(
+    directory: str, api_key: str, base_url: str
+) -> None:
     """Process all PDF files in a directory.
 
     Args:
@@ -75,7 +85,7 @@ def process_pdfs_in_directory(directory: str, api_key: str, base_url: str) -> No
         return
 
     for filename in tqdm(os.listdir(directory)):
-        if filename.endswith('.pdf'):
+        if filename.endswith(".pdf"):
             filename_without_suffix = os.path.splitext(filename)[0]
             pdf_path = os.path.join(directory, filename)
             # Create a directory based on the PDF file name
@@ -89,11 +99,13 @@ def process_pdfs_in_directory(directory: str, api_key: str, base_url: str) -> No
                 create_output_directory(output_dir)
 
                 content, image_paths = process_pdf_file(
-                    pdf_path, output_dir, api_key, base_url)
+                    pdf_path, output_dir, api_key, base_url
+                )
 
-                md_path = os.path.join(output_dir, 'output.md')
+                md_path = os.path.join(output_dir, "output.md")
                 json_path = os.path.join(
-                    output_dir, f'{filename_without_suffix}.json')
+                    output_dir, f"{filename_without_suffix}.json"
+                )
 
                 convert_md_to_json(md_path, json_path)
 
@@ -103,6 +115,7 @@ def process_pdfs_in_directory(directory: str, api_key: str, base_url: str) -> No
                 print(f"Output saved to '{output_dir}'\n")
             except Exception as e:
                 print(f"Error processing '{pdf_path}': {e}")
+
 
 def main(pdf_directory: str) -> None:
     """Main function to load environment variables and process PDFs."""
@@ -116,6 +129,7 @@ def main(pdf_directory: str) -> None:
     except ValueError as e:
         print(e)
 
-if __name__ == '__main__':
-    pdf_directory = r'/home/sunjinf/github_projet/nature_data/papers_1'
+
+if __name__ == "__main__":
+    pdf_directory = r"/home/sunjinf/github_projet/nature_data/papers_1"
     main(pdf_directory)

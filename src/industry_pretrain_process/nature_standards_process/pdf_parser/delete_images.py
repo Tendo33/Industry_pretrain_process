@@ -1,8 +1,9 @@
 import os
 import shutil
 
+
 def delete_images_in_subfolders(folder_path):
-    image_extensions = {'.jpg', '.jpeg', '.png', '.gif'}
+    image_extensions = {".jpg", ".jpeg", ".png", ".gif"}
 
     for root, _, files in os.walk(folder_path):
         for file in files:
@@ -10,7 +11,7 @@ def delete_images_in_subfolders(folder_path):
                 try:
                     file_path = os.path.join(root, file)
                     os.remove(file_path)
-                    print(f'Deleted {file_path}')
+                    print(f"Deleted {file_path}")
                 except Exception as e:
                     print(f"Error deleting {file_path}: {e}")
 
@@ -32,10 +33,10 @@ def move_directories(src_dir, dst_dir):
             except Exception as e:
                 print(f"Error moving {item_path} to {dst_dir}: {e}")
 
-if __name__ == '__main__':
 
-    folder_path = r'/home/sunjinf/github_projet/nature_data/papers_1'
-    target_dir = r'/home/sunjinf/github_projet/nature_data/papers_1_out'
+if __name__ == "__main__":
+    folder_path = r"/home/sunjinf/github_projet/nature_data/papers_1"
+    target_dir = r"/home/sunjinf/github_projet/nature_data/papers_1_out"
 
     delete_images_in_subfolders(folder_path)
     move_directories(folder_path, target_dir)

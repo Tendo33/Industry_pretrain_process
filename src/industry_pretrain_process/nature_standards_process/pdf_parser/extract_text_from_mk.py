@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 logging.basicConfig(level=logging.INFO)
 
-SYSTEM_PROMPT = '''
+SYSTEM_PROMPT = """
 # Role
 文本提取与错字修复助手
 
@@ -37,53 +37,68 @@ SYSTEM_PROMPT = '''
 2. 提取文件中的纯文字和信息。
 3. 识别并修复其中的中文错字漏字使其变为通顺的句子。
 4. 只返回修复后的纯文字内容。
-'''
+"""
 
 
-def model_infer_curl(system_content: str, user_content: str, model_url: str, temperature: float = 0.9):
-
+def model_infer_curl(
+    system_content: str,
+    user_content: str,
+    model_url: str,
+    temperature: float = 0.9,
+):
     API_URL = "http://ai-api.e-tudou.com:9000/v1/chat/completions"
     API_KEY = "sk-uG93vRV5V2Dog95J15FfCdE5DaAe438fBb17C642F2E1Ae57"
     MODEL_NAME = "qwen-max"
 
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {API_KEY}"
+        "Authorization": f"Bearer {API_KEY}",
     }
 
     payload = {
         "model": MODEL_NAME,
         "messages": [
             {"role": "system", "content": system_content},
-            {"role": "user", "content": user_content}
+            {"role": "user", "content": user_content},
         ],
-        "temperature": 0.7
+        "temperature": 0.7,
     }
 
     command = [
-        "curl", API_URL,
-        "-H", f"Content-Type: {headers['Content-Type']}",
-        "-H", f"Authorization: {headers['Authorization']}",
-        "-d", json.dumps(payload)
+        "curl",
+        API_URL,
+        "-H",
+        f"Content-Type: {headers['Content-Type']}",
+        "-H",
+        f"Authorization: {headers['Authorization']}",
+        "-d",
+        json.dumps(payload),
     ]
 
     result = subprocess.run(command, capture_output=True, text=True)
     if result.returncode != 0:
         logging.error(f"API request failed: {result.stderr}")
-        return ''
+        return ""
 
     response = json.loads(result.stdout)
     if not response:
         logging.error("API request failed: No response received")
-        return ''
+        return ""
     else:
-        return response['choices'][0]['message']['content'].strip()
+        return response["choices"][0]["message"]["content"].strip()
 
-def model_infer(system_content: str, user_content: str, model_url: str, temperature: float = 0.9, frequency_penalty: float = 0.0, presence_penalty: float = 0.0) -> str:
 
+def model_infer(
+    system_content: str,
+    user_content: str,
+    model_url: str,
+    temperature: float = 0.9,
+    frequency_penalty: float = 0.0,
+    presence_penalty: float = 0.0,
+) -> str:
     client = OpenAI(
         api_key="sk-uG93vRV5V2Dog95J15FfCdE5DaAe438fBb17C642F2E1Ae57",
-        base_url=model_url
+        base_url=model_url,
     )
     model_name = "Qwen1.5-72B-Chat-GPTQ-Int4"
     start_time = time.time()
@@ -109,12 +124,14 @@ def model_infer(system_content: str, user_content: str, model_url: str, temperat
     logging.info(f"生成速度：{generated_speed:.2f} 字/秒")
     return output
 
+
 def construct_query(content: str) -> str:
     prompt = f"下面是一个文字混乱格式混乱的markdown, 从中提取出连续可训练的文字：'''{content}'''"
     return prompt
 
+
 def split_into_chunks(text: str, chunk_size: int = 4000) -> list:
-    return [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
+    return [text[i : i + chunk_size] for i in range(0, len(text), chunk_size)]
 
 
 def process_markdown_files(input_folder: str, output_file: str, model_url: str):
@@ -125,7 +142,7 @@ def process_markdown_files(input_folder: str, output_file: str, model_url: str):
                 folder_name = os.path.basename(subdir)
                 file_path = os.path.join(subdir, file)
                 try:
-                    with open(file_path, 'r', encoding='utf-8') as f:
+                    with open(file_path, "r", encoding="utf-8") as f:
                         content = f.read()
                 except Exception as e:
                     logging.error(f"Failed to read {file_path}: {e}")
@@ -136,8 +153,7 @@ def process_markdown_files(input_folder: str, output_file: str, model_url: str):
 
                 for chunk in tqdm(chunks, desc=f"Processing {file}"):
                     query = construct_query(chunk)
-                    chunk_result = model_infer(
-                        SYSTEM_PROMPT, query, model_url)
+                    chunk_result = model_infer(SYSTEM_PROMPT, query, model_url)
                     if chunk_result is None:
                         continue
                     processed_content += chunk_result
@@ -145,14 +161,17 @@ def process_markdown_files(input_folder: str, output_file: str, model_url: str):
                 result = {"title": folder_name, "content": processed_content}
 
                 try:
-                    with open(output_file, 'a', encoding='utf-8') as f:
-                        f.write(json.dumps(result, ensure_ascii=False) + '\n')
+                    with open(output_file, "a", encoding="utf-8") as f:
+                        f.write(json.dumps(result, ensure_ascii=False) + "\n")
                 except Exception as e:
                     logging.error(f"Failed to write to {output_file}: {e}")
 
+
 if __name__ == "__main__":
     input_folder_path = r"/home/sunjinf/github_projet/nature_data/out_first"
-    output_file_path = r"/home/sunjinf/github_projet/nature_data/out_first_processed.jsonl"
+    output_file_path = (
+        r"/home/sunjinf/github_projet/nature_data/out_first_processed.jsonl"
+    )
     model_api_url = "http://ai-api.e-tudou.com:9000/v1"
 
     process_markdown_files(input_folder_path, output_file_path, model_api_url)

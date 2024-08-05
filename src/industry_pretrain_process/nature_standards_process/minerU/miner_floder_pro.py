@@ -8,7 +8,10 @@ import magic_pdf.model as model_config
 
 from nb_log import get_logger
 
-logger = get_logger('mineru_folder', formatter_template=5,)
+logger = get_logger(
+    "mineru_folder",
+    formatter_template=5,
+)
 os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 
 # 使用内部模型
@@ -21,15 +24,25 @@ def json_md_dump(pipe, md_writer, pdf_name, content_list, md_content):
         f"{pdf_name}_model.json": pipe.model_list,
         f"{pdf_name}_middle.json": pipe.pdf_mid_data,
         f"{pdf_name}_content_list.json": content_list,
-        f"{pdf_name}.md": md_content
+        f"{pdf_name}.md": md_content,
     }
-    
+
     for file_name, content in output_files.items():
-        md_writer.write(content=json.dumps(content, ensure_ascii=False, indent=4)
-                        if file_name.endswith('.json') else content, path=file_name)
+        md_writer.write(
+            content=json.dumps(content, ensure_ascii=False, indent=4)
+            if file_name.endswith(".json")
+            else content,
+            path=file_name,
+        )
 
 
-def pdf_parse_main(pdf_path: str, parse_method: str = 'auto', model_json_path: str = None, is_json_md_dump: bool = True, output_dir: str = None):
+def pdf_parse_main(
+    pdf_path: str,
+    parse_method: str = "auto",
+    model_json_path: str = None,
+    is_json_md_dump: bool = True,
+    output_dir: str = None,
+):
     """
     执行从 pdf 转换到 json、md 的过程，输出 md 和 json 文件到指定目录
 
@@ -44,8 +57,9 @@ def pdf_parse_main(pdf_path: str, parse_method: str = 'auto', model_json_path: s
         pdf_name = os.path.splitext(os.path.basename(pdf_path))[0]
         # 设置输出路径
         output_path = os.path.join(
-            output_dir or os.path.dirname(pdf_path), pdf_name)
-        output_image_path = os.path.join(output_path, 'images')
+            output_dir or os.path.dirname(pdf_path), pdf_name
+        )
+        output_image_path = os.path.join(output_path, "images")
         image_path_parent = os.path.basename(output_image_path)
 
         # 创建输出目录和图像目录
@@ -57,18 +71,27 @@ def pdf_parse_main(pdf_path: str, parse_method: str = 'auto', model_json_path: s
             pdf_bytes = f.read()
 
         # 如果提供了模型数据文件路径，则加载模型数据
-        model_json = json.load(
-            open(model_json_path, "r", encoding="utf-8")) if model_json_path else []
+        model_json = (
+            json.load(open(model_json_path, "r", encoding="utf-8"))
+            if model_json_path
+            else []
+        )
 
         # 创建读写器对象
-        image_writer, md_writer = DiskReaderWriter(
-            output_image_path), DiskReaderWriter(output_path)
+        image_writer, md_writer = (
+            DiskReaderWriter(output_image_path),
+            DiskReaderWriter(output_path),
+        )
 
         # 根据解析方法选择相应的处理管道
         pipe = {
-            "auto": lambda: UNIPipe(pdf_bytes, {"_pdf_type": "", "model_list": model_json}, image_writer),
+            "auto": lambda: UNIPipe(
+                pdf_bytes,
+                {"_pdf_type": "", "model_list": model_json},
+                image_writer,
+            ),
             "txt": lambda: TXTPipe(pdf_bytes, model_json, image_writer),
-            "ocr": lambda: OCRPipe(pdf_bytes, model_json, image_writer)
+            "ocr": lambda: OCRPipe(pdf_bytes, model_json, image_writer),
         }.get(parse_method, lambda: None)()
 
         if not pipe:
@@ -90,7 +113,8 @@ def pdf_parse_main(pdf_path: str, parse_method: str = 'auto', model_json_path: s
 
         # 生成统一格式和Markdown格式的内容
         content_list = pipe.pipe_mk_uni_format(
-            image_path_parent, drop_mode="none")
+            image_path_parent, drop_mode="none"
+        )
         md_content = pipe.pipe_mk_markdown(image_path_parent, drop_mode="none")
 
         # 如果需要，写入结果到JSON和Markdown文件
@@ -101,7 +125,13 @@ def pdf_parse_main(pdf_path: str, parse_method: str = 'auto', model_json_path: s
         logger.exception(e)
 
 
-def process_all_pdfs_in_directory(directory: str, parse_method: str = 'auto', model_json_path: str = None, is_json_md_dump: bool = True, output_dir: str = None):
+def process_all_pdfs_in_directory(
+    directory: str,
+    parse_method: str = "auto",
+    model_json_path: str = None,
+    is_json_md_dump: bool = True,
+    output_dir: str = None,
+):
     """
     处理目录中的所有 PDF 文件
 
@@ -113,12 +143,17 @@ def process_all_pdfs_in_directory(directory: str, parse_method: str = 'auto', mo
     """
     for root, _, files in os.walk(directory):
         for file in files:
-            if file.lower().endswith('.pdf'):
+            if file.lower().endswith(".pdf"):
                 pdf_path = os.path.join(root, file)
-                pdf_parse_main(pdf_path, parse_method,
-                               model_json_path, is_json_md_dump, output_dir)
+                pdf_parse_main(
+                    pdf_path,
+                    parse_method,
+                    model_json_path,
+                    is_json_md_dump,
+                    output_dir,
+                )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pdf_directory = r"/workspace/sunjinfeng/github_projet/Industry_pretrain_process/data/test_data"
     process_all_pdfs_in_directory(pdf_directory)

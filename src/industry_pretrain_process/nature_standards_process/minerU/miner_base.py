@@ -4,7 +4,10 @@ from magic_pdf.rw.DiskReaderWriter import DiskReaderWriter
 import magic_pdf.model as model_config
 from nb_log import get_logger
 
-logger = get_logger('mineru_folder', formatter_template=5,)
+logger = get_logger(
+    "mineru_folder",
+    formatter_template=5,
+)
 os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 
 
@@ -15,7 +18,7 @@ model_config.__use_inside_model__ = True
 def process_pdf_file(file_path: str, image_dir: str, model_json: list = []):
     """
     处理单个PDF文件，将其内容转换为Markdown格式。
-    
+
     参数：
     - file_path: PDF文件路径
     - image_dir: 保存图像的目录
@@ -56,7 +59,7 @@ def process_pdf_file(file_path: str, image_dir: str, model_json: list = []):
 def process_pdf_folder(folder_path: str, image_dir: str, model_json: list = []):
     """
     处理文件夹中的所有PDF文件，将其内容转换为Markdown格式。
-    
+
     参数：
     - folder_path: PDF文件夹路径
     - image_dir: 保存图像的目录
@@ -75,7 +78,8 @@ def process_pdf_folder(folder_path: str, image_dir: str, model_json: list = []):
                         md_file.write(md_content)
 
                     print(
-                        f"处理完成 {filename} 并保存Markdown内容至 {output_md_path}")
+                        f"处理完成 {filename} 并保存Markdown内容至 {output_md_path}"
+                    )
     except Exception as e:
         logger.exception(f"处理文件夹 {folder_path} 时出现异常：{e}")
 

@@ -7,16 +7,27 @@ from src.utils.save_file import save_to_jsonl
 
 from nb_log import get_logger
 
-logger = get_logger(name="nature",
-                    log_path="log", log_filename='nature_data_clean', formatter_template=5,)
+logger = get_logger(
+    name="nature",
+    log_path="log",
+    log_filename="nature_data_clean",
+    formatter_template=5,
+)
 
 
 def make_pretrain_data(contents: list[str], titles: list[str]) -> list:
     temp_list = []
-    for content, title in tqdm(zip(contents, titles), total=len(contents), desc="清洗中"):
-
+    for content, title in tqdm(
+        zip(contents, titles), total=len(contents), desc="清洗中"
+    ):
         content = jionlp.clean_text(
-            content, remove_email=True, remove_phone_number=True, remove_url=False, remove_parentheses=False, delete_prefix=True)
+            content,
+            remove_email=True,
+            remove_phone_number=True,
+            remove_url=False,
+            remove_parentheses=False,
+            delete_prefix=True,
+        )
         text = f"{title}\n{content}"
         if len(text) > 20 and len(text) < 5000:
             temp = {
@@ -42,7 +53,6 @@ def process_base(source_file_path: str, target_file_path: str) -> None:
 
 
 if __name__ == "__main__":
-
     file_path = r"/workspace/sunjinfeng/github_projet/LLaMA-Factory/data/nature_dataset_wiki_v1.jsonl"
     out_path = r"/workspace/sunjinfeng/github_projet/LLaMA-Factory/data/nature_dataset_wiki_v2.jsonl"
     process_base(file_path, out_path)

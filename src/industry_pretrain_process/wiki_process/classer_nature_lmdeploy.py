@@ -11,7 +11,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 BATCH_SIZE = 68
 
 # 定义系统提示语
-SYSTEM_PROMPT = '''
+SYSTEM_PROMPT = """
 # Role
 自然资源领域鉴定助手
 
@@ -38,9 +38,9 @@ SYSTEM_PROMPT = '''
 2. 分析文本内容，查找与自然资源相关的关键词和概念。
 3. 仔细思考然后判断用户输入的内容是否与自然资源相关。
 4. 如果用户输入的内容符合自然资源领域，返回数字“1”否则返回数字“0”。
-'''
+"""
 
-SYSTEM_PROMPT_PRO = '''
+SYSTEM_PROMPT_PRO = """
 # Role
 自然资源领域严格鉴定助手
 
@@ -68,14 +68,13 @@ SYSTEM_PROMPT_PRO = '''
 2. 分析文本内容，查找与自然资源相关的关键词和概念。
 3. 仔细思考然后严格判断用户输入的内容是否与自然资源相关。
 4. 如果你认为跟自然资源领域的重合度大于百分之90，则返回数字“1”否则返回数字“0”。
-'''
+"""
 
 
 def apply_template(text: str) -> str:
-
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT_PRO},
-        {"role": "user", "content": text}
+        {"role": "user", "content": text},
     ]
     # tokenized_chat = tokenizer.apply_chat_template(
     #     messages, tokenize=False, add_generation_prompt=True)
@@ -91,17 +90,18 @@ def make_user_prompt(text: str) -> str:
     return prompt
 
 
-def process_documents_in_batch(documents, start_index, end_index, pipe, gen_config):
-
+def process_documents_in_batch(
+    documents, start_index, end_index, pipe, gen_config
+):
     batch_documents = documents[start_index:end_index]
     # batch_documents = [document["text"]
     #                   for document in batch_documents]  # 智源数据集的字段是text
-    batch_documents_content = [document["content"]
-                               for document in batch_documents]  # wiki 数据集的字段是content
+    batch_documents_content = [
+        document["content"] for document in batch_documents
+    ]  # wiki 数据集的字段是content
     batch_queries = []
 
     for document in batch_documents_content:
-
         query_text = make_user_prompt(text=document)
         formatted_query = apply_template(query_text)
         batch_queries.append(formatted_query)
@@ -127,35 +127,50 @@ if __name__ == "__main__":
 
     # Sampling参数
     backend_config = TurbomindEngineConfig(
-        tp=1, quant_policy=8, model_format="awq", max_batch_size=256, cache_max_entry_count=0.9, enable_prefix_caching=True)
+        tp=1,
+        quant_policy=8,
+        model_format="awq",
+        max_batch_size=256,
+        cache_max_entry_count=0.9,
+        enable_prefix_caching=True,
+    )
     gen_config = GenerationConfig(
-        top_p=0.8, top_k=40, temperature=0.5, max_new_tokens=32000)
-    pipe = pipeline(MODEL_PATH,
-                    backend_config=backend_config)
+        top_p=0.8, top_k=40, temperature=0.5, max_new_tokens=32000
+    )
+    pipe = pipeline(MODEL_PATH, backend_config=backend_config)
 
     # 文件路径
-    INPUT_FILE_PATH = r"/workspace/share_data/data/pretrain_data/wiki_filter_all_new.jsonl"
-    OUTPUT_FILE_PATH = r"/workspace/share_data/data/pretrain_data/wiki_nature_all.jsonl"
+    INPUT_FILE_PATH = (
+        r"/workspace/share_data/data/pretrain_data/wiki_filter_all_new.jsonl"
+    )
+    OUTPUT_FILE_PATH = (
+        r"/workspace/share_data/data/pretrain_data/wiki_nature_all.jsonl"
+    )
     # 读取文件内容
-    with open(INPUT_FILE_PATH, 'r', encoding='utf-8') as input_file:
+    with open(INPUT_FILE_PATH, "r", encoding="utf-8") as input_file:
         input_documents = [json.loads(line) for line in input_file]
 
     # 读取输出路径中已有的内容
     if os.path.exists(OUTPUT_FILE_PATH):
-        with open(OUTPUT_FILE_PATH, 'r', encoding='utf-8') as output_file:
+        with open(OUTPUT_FILE_PATH, "r", encoding="utf-8") as output_file:
             processed_lines = output_file.readlines()
     else:
         processed_lines = []
 
     total_docs = len(input_documents)
-    for start_index in tqdm(range(0, total_docs, BATCH_SIZE), total=total_docs // BATCH_SIZE, desc="Processing"):
+    for start_index in tqdm(
+        range(0, total_docs, BATCH_SIZE),
+        total=total_docs // BATCH_SIZE,
+        desc="Processing",
+    ):
         end_index = min(start_index + BATCH_SIZE, total_docs)
         if start_index < len(processed_lines):
             continue
 
         # 处理所有批次
         batch_result, batch_documents = process_documents_in_batch(
-            input_documents, start_index, end_index, pipe, gen_config)
+            input_documents, start_index, end_index, pipe, gen_config
+        )
 
         filtered_documents = []
         # 筛选出包含数字1的文档
@@ -168,7 +183,8 @@ if __name__ == "__main__":
         else:
             print(f"{len(filtered_documents)} documents are filtered.")
             # 将筛选出的文档写入文件
-            with open(OUTPUT_FILE_PATH, 'a', encoding='utf-8') as output_file:
+            with open(OUTPUT_FILE_PATH, "a", encoding="utf-8") as output_file:
                 for document in filtered_documents:
-                    output_file.write(json.dumps(
-                        document, ensure_ascii=False) + '\n')
+                    output_file.write(
+                        json.dumps(document, ensure_ascii=False) + "\n"
+                    )

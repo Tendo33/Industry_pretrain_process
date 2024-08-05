@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO)
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-SYSTEM_PROMPT = '''
+SYSTEM_PROMPT = """
 # Role
 文本提取与错字修复助手
 
@@ -39,17 +39,17 @@ SYSTEM_PROMPT = '''
 2. 提取文件中的不带Markdown格式的文字和信息。
 3. 识别并修复其中的中文错字漏字使其变为通顺的句子。
 4. 只返回修复后的纯文字内容。
-'''
+"""
 
 
 def apply_template(text: str) -> str:
-
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": text}
+        {"role": "user", "content": text},
     ]
     tokenized_chat = tokenizer.apply_chat_template(
-        messages, tokenize=False, add_generation_prompt=True)
+        messages, tokenize=False, add_generation_prompt=True
+    )
     return tokenized_chat
 
 
@@ -59,7 +59,7 @@ def construct_query(content: str) -> str:
 
 
 def split_into_chunks(text: str, chunk_size: int = 6000) -> list:
-    return [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
+    return [text[i : i + chunk_size] for i in range(0, len(text), chunk_size)]
 
 
 def process_markdown_files(input_folder: str, output_file: str):
@@ -70,7 +70,7 @@ def process_markdown_files(input_folder: str, output_file: str):
                 folder_name = os.path.basename(subdir)
                 file_path = os.path.join(subdir, file)
                 try:
-                    with open(file_path, 'r', encoding='utf-8') as f:
+                    with open(file_path, "r", encoding="utf-8") as f:
                         content = f.read()
                 except Exception as e:
                     logging.error(f"Failed to read {file_path}: {e}")
@@ -85,20 +85,22 @@ def process_markdown_files(input_folder: str, output_file: str):
                     query_for_process_list.append(query_for_process)
 
                 generated_outputs = llm.generate(
-                    query_for_process_list, sampling_params)
+                    query_for_process_list, sampling_params
+                )
                 after_llm_list = []
 
                 for i, document in enumerate(generated_outputs):
-                    generated_text = generated_outputs[i].outputs[0].text.strip(
-                        "\n").strip()
+                    generated_text = (
+                        generated_outputs[i].outputs[0].text.strip("\n").strip()
+                    )
                     print(generated_text)
                     after_llm_list.append(generated_text)
                     print("*" * 50)
                 processed_content = "".join(after_llm_list)
                 result = {"title": folder_name, "content": processed_content}
 
-                with open(output_file, 'a', encoding='utf-8') as f:
-                    f.write(json.dumps(result, ensure_ascii=False) + '\n')
+                with open(output_file, "a", encoding="utf-8") as f:
+                    f.write(json.dumps(result, ensure_ascii=False) + "\n")
 
 
 if __name__ == "__main__":
@@ -108,9 +110,16 @@ if __name__ == "__main__":
 
     # Sampling参数
     sampling_params = SamplingParams(
-        temperature=0.2, top_p=0.95, max_tokens=12000)
-    llm = LLM(model=MODEL_PATH, dtype="auto", tensor_parallel_size=1,
-              tokenizer_mode="auto", gpu_memory_utilization=0.95, enforce_eager=True)
+        temperature=0.2, top_p=0.95, max_tokens=12000
+    )
+    llm = LLM(
+        model=MODEL_PATH,
+        dtype="auto",
+        tensor_parallel_size=1,
+        tokenizer_mode="auto",
+        gpu_memory_utilization=0.95,
+        enforce_eager=True,
+    )
 
     INPUT_FOLDER = r"/workspace/share_data/data/nature_data/out_123"
     OUTPUT_FILE = r"/workspace/share_data/data/nature_data/out_123_vllm.jsonl"
