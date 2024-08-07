@@ -6,7 +6,7 @@ logger = get_logger(
     "mineru_folder_cli",
     formatter_template=5,
 )
-os.environ["CUDA_VISIBLE_DEVICES"] = "3"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 
 def process_pdfs_in_directory(
@@ -79,13 +79,16 @@ def process_pdfs_in_directory(
 
 
 if __name__ == "__main__":
-    directory = r"/workspace/sunjinfeng/github_projet/"
+    directory = (
+        r"/workspace/sunjinfeng/github_projet/nature_data/data_origin/origin_standard"
+    )
+
     model_path = r""
 
     process_pdfs_in_directory(
         directory=directory,
         model_path=None,
-        method="auto",
+        method="ocr",
         inside_model=True,
         model_mode="full",
     )
