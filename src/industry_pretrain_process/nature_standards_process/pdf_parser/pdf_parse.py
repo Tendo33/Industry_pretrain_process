@@ -15,7 +15,7 @@ def test_use_api_key(pdf_path, output_dir):
         output_dir=output_dir,
         api_key=api_key,
         base_url=base_url,
-        model="xxx",
+        model="gpt-4o",
         gpt_worker=12,
     )
 
