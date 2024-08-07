@@ -1,13 +1,13 @@
 import os
 import json
 from tqdm import tqdm
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoTokenizer
 from vllm import LLM, SamplingParams
 
 # os.environ["NCCL_NVLS_ENABLE"] = "0"
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-BATCH_SIZE = 128
+BATCH_SIZE = 64
 
 # 定义系统提示语
 SYSTEM_PROMPT = """
@@ -32,6 +32,8 @@ SYSTEM_PROMPT = """
 - 必须基于给定的问答对内容进行评估。
 - 给定的问题必须有高的语义清晰度以及具有宏观性、价值性、信息完整性和低的困惑度。
 - 给定的答案必须与问题吻合切回答了对应的问题。
+- 如果输入不属于“{"instruction": "xxx", "output": "xxx"}”格式，直接返回数字0。
+- 如果答案中出现图片，表格，markdown格式的数据，，直接返回数字0。
 - 评估结果必须清晰明确，符合标准则返回数字1，不合格则返回数字0。
 - 如果问题或者回答中有“**”或者“##”等脱敏符号导致原本的语义不完整，直接返回数字0。
 - 如果问题或者回答中有个人信息比如电话，邮件，网站，私人地址等，直接返回数字0。
@@ -71,9 +73,7 @@ def make_user_prompt(text: str) -> str:
     return prompt
 
 
-def process_documents_in_batch(
-    documents, start_index, end_index, llm, sampling_params
-):
+def process_documents_in_batch(documents, start_index, end_index, llm, sampling_params):
     batch_documents = documents[start_index:end_index]
     # print(batch_documents)
     batch_documents_content = [
@@ -91,9 +91,7 @@ def process_documents_in_batch(
 
     result = []
     for i, document in enumerate(batch_documents):
-        generated_text = (
-            generated_outputs[i].outputs[0].text.strip("\n").strip()
-        )
+        generated_text = generated_outputs[i].outputs[0].text.strip("\n").strip()
         print(generated_text)
         result.append(generated_text)
         print("*" * 50)
@@ -109,9 +107,7 @@ if __name__ == "__main__":
     tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 
     # Sampling参数
-    sampling_params = SamplingParams(
-        temperature=0.2, top_p=0.90, max_tokens=32000
-    )
+    sampling_params = SamplingParams(temperature=0.2, top_p=0.90, max_tokens=22000)
     llm = LLM(
         model=MODEL_PATH,
         dtype="auto",
@@ -122,15 +118,20 @@ if __name__ == "__main__":
     )
 
     # 文件路径
-    INPUT_FILE_PATH = (
-        r"/workspace/share_data/data/nature_data/nature_qa_1234.jsonl"
-    )
+    INPUT_FILE_PATH = r"/workspace/share_data/data/nature_data/nature_qa_1234.jsonl"
     OUTPUT_FILE_PATH = (
-        r"/workspace/share_data/data/nature_data/nature_qa_1234_filter.jsonl"
+        r"/workspace/share_data/data/nature_data/nature_qa_1234_filter2.jsonl"
     )
     # 读取文件内容
+    documents = []
     with open(INPUT_FILE_PATH, "r", encoding="utf-8") as input_file:
-        documents = [json.loads(line) for line in input_file]
+        for i, line in enumerate(input_file):
+            try:
+                if line.strip():
+                    documents.append(json.loads(line))
+            except json.JSONDecodeError as e:
+                print(f"Error decoding JSON on line {i+1}: {e}")
+                print(f"Problematic line content: {line}")
 
     # 读取输出路径中已有的内容
     if os.path.exists(OUTPUT_FILE_PATH):
@@ -167,6 +168,4 @@ if __name__ == "__main__":
             # 将筛选出的文档写入文件
             with open(OUTPUT_FILE_PATH, "a", encoding="utf-8") as output_file:
                 for document in filtered_documents:
-                    output_file.write(
-                        json.dumps(document, ensure_ascii=False) + "\n"
-                    )
+                    output_file.write(json.dumps(document, ensure_ascii=False) + "\n")

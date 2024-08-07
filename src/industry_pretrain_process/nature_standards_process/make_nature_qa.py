@@ -96,9 +96,7 @@ if __name__ == "__main__":
         documents = [json.loads(line) for line in input_file]
 
     with open(OUT_PATH, "a", encoding="utf-8") as f_out:
-        for document in tqdm(
-            documents, total=len(documents), desc="Processing"
-        ):
+        for document in tqdm(documents, total=len(documents), desc="Processing"):
             text = document.get("content", "")
             title = document.get("title", "")
             chunks = chunk_text(text=text, chunk_size=6000)
@@ -113,8 +111,6 @@ if __name__ == "__main__":
                 for line in output_jsonl:
                     try:
                         json_obj = json.loads(line)
-                        f_out.write(
-                            json.dumps(json_obj, ensure_ascii=False) + "\n"
-                        )
+                        f_out.write(json.dumps(json_obj, ensure_ascii=False) + "\n")
                     except json.JSONDecodeError:
                         logging.warning(f"Failed to decode JSON: {line}")
