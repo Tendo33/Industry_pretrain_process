@@ -12,7 +12,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 QUESTION_SYSTEM_PROMPT = """
 # Role: 自然资源行业问题分析师
 ## Profile
-- Language: 中文
+- Language: 简体中文
 - Description: 专门负责从自然资源行业的国家标准文件、论文或书籍中提取宏观、有价值的问题，涵盖多个相关话题。
 
 ## Knowledges
@@ -41,7 +41,7 @@ QUESTION_SYSTEM_PROMPT = """
 ANSWER_SYSTEM_PROMPT = """
 # Role: 自然资源行业问题回答专家
 ## Profile
-- Language: 中文
+- Language: 简体中文
 - Description: 专门负责根据给定的自然资源行业的国家标准文件、论文或书籍片段作为知识，根据这些知识回答宏观、有价值且涵盖多个相关话题的问题。
 
 ## Knowledges
@@ -66,8 +66,6 @@ ANSWER_SYSTEM_PROMPT = """
 4. 将回答以详细且严谨的描述风格呈现给用户。
 """
 
-
-# Function to parse responses into questions
 def parse_response(original: str) -> list[str]:
     questions = original.split("\n")
     result = []
@@ -77,10 +75,8 @@ def parse_response(original: str) -> list[str]:
             result.append(question)
     return result
 
-
 def chunk_text(text: str, chunk_size: int = 4000):
     return [text[i : i + chunk_size] for i in range(0, len(text), chunk_size)]
-
 
 def make_question_prompt(title: str, text: str) -> str:
     prompt = f"""
@@ -88,7 +84,6 @@ def make_question_prompt(title: str, text: str) -> str:
     {text}
     """
     return prompt
-
 
 def make_response_prompt(title: str, question: str, text: str) -> str:
     prompt = f"""
@@ -98,70 +93,88 @@ def make_response_prompt(title: str, question: str, text: str) -> str:
     """
     return prompt
 
-
 def model_infer(
     system_prompt: str,
     user_prompt: str,
     model_name: str,
     temperature: float = 0.8,
 ) -> str:
-    client = OpenAI(
-        api_key="sk-uG93vRV5V2Dog95J15FfCdE5DaAe438fBb17C642F2E1Ae57",
-        base_url="http://ai-api.e-tudou.com:9000/v1",
-    )
-    # 使用OpenAI ChatCompletion API生成聊天响应
-    response = client.chat.completions.create(
-        model=model_name,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
-        ],
-        temperature=temperature,
-    )
-    output = ""
-    if response.choices[0].message.content:
-        output = response.choices[0].message.content.strip()
-    return output
+    try:
+        client = OpenAI(
+            api_key="sk-uG93vRV5V2Dog95J15FfCdE5DaAe438fBb17C642F2E1Ae57",
+            base_url="http://ai-api.e-tudou.com:9000/v1",
+        )
+        response = client.chat.completions.create(
+            model=model_name,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=temperature,
+        )
+        output = (
+            response.choices[0].message.content.strip()
+            if response.choices[0].message.content
+            else ""
+        )
+        return output
+    except Exception as e:
+        logging.error(f"Error during model inference: {e}")
+        return ""
+
+
+def process_document(document: dict, model_name: str):
+    text = document.get("content", "")
+    title = document.get("title", "")
+    chunks = chunk_text(text=text, chunk_size=6000)
+    results = []
+
+    for chunk in chunks:
+        user_q_prompt = make_question_prompt(title=title, text=chunk)
+        question_output = model_infer(
+            QUESTION_SYSTEM_PROMPT, user_q_prompt, model_name, temperature=0.8
+        )
+        if not question_output:
+            continue
+
+        output_list = parse_response(question_output)
+        for question in output_list:
+            user_a_prompt = make_response_prompt(
+                title=title, text=chunk, question=question
+            )
+            answer_output = model_infer(
+                ANSWER_SYSTEM_PROMPT,
+                user_a_prompt,
+                model_name,
+                temperature=0.8,
+            )
+            temp_dict = {
+                "title": title,
+                "question": question,
+                "answer": answer_output,
+            }
+            results.append(temp_dict)
+    return results
 
 
 if __name__ == "__main__":
     MODEL_NAME = "gpt-4o"
-
     FILE_PATH = r"/share_data/data/nature_data/out_4_text_ori.jsonl"
     OUT_PATH = r"/share_data/data/nature_data/nature_qa_4.jsonl"
 
-    with open(FILE_PATH, "r", encoding="utf-8") as input_file:
-        documents = [json.loads(line) for line in input_file]
+    try:
+        with open(FILE_PATH, "r", encoding="utf-8") as input_file, open(
+            OUT_PATH, "a", encoding="utf-8"
+        ) as f_out:
+            documents = [json.loads(line) for line in input_file]
 
-    with open(OUT_PATH, "a", encoding="utf-8") as f_out:
-        for document in tqdm(documents, total=len(documents), desc="Processing"):
-            text = document.get("content", "")
-            title = document.get("title", "")
-            chunks = chunk_text(text=text, chunk_size=6000)
-            for chunk in chunks:
-                user_q_prompt = make_question_prompt(title=title, text=chunk)
-                question_output = model_infer(
-                    QUESTION_SYSTEM_PROMPT, user_q_prompt, MODEL_NAME, temperature=0.8
-                )
-                print(question_output)
+            for document in tqdm(documents, total=len(documents), desc="Processing"):
+                try:
+                    results = process_document(document, MODEL_NAME)
+                    for result in results:
+                        f_out.write(json.dumps(result, ensure_ascii=False) + "\n")
+                except Exception as e:
+                    logging.error(f"Error processing document: {e}")
 
-                output_list = parse_response(question_output)
-                for question in output_list:
-                    user_a_prompt = make_response_prompt(
-                        title=title, text=chunk, question=question
-                    )
-                    answer_output = model_infer(
-                        ANSWER_SYSTEM_PROMPT,
-                        user_a_prompt,
-                        MODEL_NAME,
-                        temperature=0.8,
-                    )
-                    temp_dict = {
-                        "title": title,
-                        "question": question,
-                        "answer": answer_output,
-                    }
-
-                    if temp_dict:
-                        print(temp_dict)
-                        f_out.write(json.dumps(temp_dict, ensure_ascii=False) + "\n")
+    except Exception as e:
+        logging.error(f"Error opening files: {e}")
