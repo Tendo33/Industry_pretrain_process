@@ -142,7 +142,7 @@ def process_document(document: dict, model_name: str):
     chunks = chunk_text(text=text, chunk_size=6000)
     results = []
 
-    for chunk in chunks:
+    for chunk in tqdm(chunks, total=len(chunks), desc="Processing chunks"):
         user_q_prompt = make_question_prompt(title=title, text=chunk)
         question_output = model_infer(
             QUESTION_SYSTEM_PROMPT, user_q_prompt, model_name, temperature=0.8
@@ -151,7 +151,9 @@ def process_document(document: dict, model_name: str):
             continue
 
         output_list = parse_response(question_output)
-        for question in output_list:
+        for question in tqdm(
+            output_list, total=len(output_list), desc="Processing questions"
+        ):
             user_a_prompt = make_response_prompt(
                 title=title, text=chunk, question=question
             )
@@ -174,8 +176,9 @@ def process_document(document: dict, model_name: str):
 # 主函数，处理输入文件并生成输出文件
 if __name__ == "__main__":
     MODEL_NAME = "gpt-4o"
-    FILE_PATH = r"/share_data/data/nature_data/out_4_text_ori.jsonl"
-    OUT_PATH = r"/share_data/data/nature_data/nature_qa_4.jsonl"
+    MODEL_NAME = "Qwen1.5-72B-Chat"
+    FILE_PATH = r"/home/sunjinf/github_projet/nature_data/data_after_process/out_standard_test/1content_list_json.jsonl"
+    OUT_PATH = r"/home/sunjinf/github_projet/nature_data/data_after_process/out_standard_test/1content_list_json_qa.jsonl"
 
     try:
         with open(FILE_PATH, "r", encoding="utf-8") as input_file, open(
