@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import jionlp
 
 
 def extract_files(source_folder: str, destination_folder: str) -> None:
@@ -57,6 +58,10 @@ def process_json_files(source_folder, output_file):
                             and not item["text"].startswith("表")
                         ]
                     )
+                    combined_text = jionlp.clean_text(
+                        combined_text, remove_parentheses=False
+                    )
+                    combined_text = combined_text.replace("\n\n", "\n")
                     result = {"title": file_name, "content": combined_text}
                     json.dump(result, outfile, ensure_ascii=False)
                     outfile.write("\n")
