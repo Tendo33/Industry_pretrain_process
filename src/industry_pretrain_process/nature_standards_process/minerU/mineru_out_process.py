@@ -83,5 +83,6 @@ if __name__ == "__main__":
     # 示例使用
     source_folder = "你的提取文件夹路径"
     output_file = "你的输出jsonl文件路径"
-    save_jsonl_and_md_files(source_folder, output_file)
+    extract_files(source_folder, "你的输出文件夹路径")
+    # save_jsonl_and_md_files(source_folder, output_file)
     pass
