@@ -5,10 +5,13 @@ import re
 from openai import OpenAI
 from tqdm import tqdm
 
+# 配置日志记录，设置日志级别为INFO
 logging.basicConfig(level=logging.INFO)
 
+# 设置环境变量，指定CUDA可见设备为"0"
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
+# 定义问题生成系统的提示信息
 QUESTION_SYSTEM_PROMPT = """
 # Role: 自然资源行业问题分析师
 ## Profile
@@ -38,6 +41,8 @@ QUESTION_SYSTEM_PROMPT = """
 3. 基于关键主题和观点，分析师生成宏观、有价值且涵盖多个相关话题的问题。
 4. 分析师将问题以详细且严谨的描述风格呈现给用户。
 """
+
+# 定义问题回答系统的提示信息
 ANSWER_SYSTEM_PROMPT = """
 # Role: 自然资源行业问题回答专家
 ## Profile
@@ -66,6 +71,7 @@ ANSWER_SYSTEM_PROMPT = """
 4. 将回答以详细且严谨的描述风格呈现给用户。
 """
 
+# 解析模型生成的原始响应，提取问题列表
 def parse_response(original: str) -> list[str]:
     questions = original.split("\n")
     result = []
@@ -75,9 +81,11 @@ def parse_response(original: str) -> list[str]:
             result.append(question)
     return result
 
+# 将文本分割成指定大小的块
 def chunk_text(text: str, chunk_size: int = 4000):
     return [text[i : i + chunk_size] for i in range(0, len(text), chunk_size)]
 
+# 生成问题提示信息
 def make_question_prompt(title: str, text: str) -> str:
     prompt = f"""
     这是《{title}》文件中的一个段落chunk，根据下面的段落文字提取出若干个中文的详细并严谨的问题，名称主语完整无误，不能使用类似“本文件，表2，表A”这类似笼统以及局限的代词。：
@@ -85,6 +93,7 @@ def make_question_prompt(title: str, text: str) -> str:
     """
     return prompt
 
+# 生成回答提示信息
 def make_response_prompt(title: str, question: str, text: str) -> str:
     prompt = f"""
     这是《{title}》文件中的一个段落chunk:{text}。
@@ -93,6 +102,7 @@ def make_response_prompt(title: str, question: str, text: str) -> str:
     """
     return prompt
 
+# 调用模型进行推理
 def model_infer(
     system_prompt: str,
     user_prompt: str,
@@ -122,7 +132,7 @@ def model_infer(
         logging.error(f"Error during model inference: {e}")
         return ""
 
-
+# 处理文档，生成问题和回答
 def process_document(document: dict, model_name: str):
     text = document.get("content", "")
     title = document.get("title", "")
@@ -156,7 +166,7 @@ def process_document(document: dict, model_name: str):
             results.append(temp_dict)
     return results
 
-
+# 主函数，处理输入文件并生成输出文件
 if __name__ == "__main__":
     MODEL_NAME = "gpt-4o"
     FILE_PATH = r"/share_data/data/nature_data/out_4_text_ori.jsonl"
