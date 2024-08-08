@@ -14,10 +14,12 @@ def extract_files(source_folder: str, destination_folder: str) -> None:
 
         if os.path.isdir(folder_path):
             # 构造文件路径
-            json_file = os.path.join(folder_path, f"{folder_name}_content_list.json")
-            md_file = os.path.join(folder_path, f"{folder_name}.md")
-
+            json_file = os.path.join(
+                folder_path, "ocr", f"{folder_name}_content_list.json"
+            )
+            md_file = os.path.join(folder_path, "ocr", f"{folder_name}.md")
             # 检查文件是否存在并复制
+            # print(f"正在处理: {json_file}")
             if os.path.exists(json_file):
                 shutil.copy(
                     json_file,
@@ -46,11 +48,13 @@ def process_json_files(source_folder, output_file):
                 # 处理json文件
                 with open(file_path, "r", encoding="utf-8") as jf:
                     content_list = json.load(jf)
-                    combined_text = "".join(
+                    combined_text = "\n".join(
                         [
-                            item["content"]
+                            item["text"]
                             for item in content_list
                             if item["type"] == "text"
+                            and not item["text"].startswith("图")
+                            and not item["text"].startswith("表")
                         ]
                     )
                     result = {"title": file_name, "content": combined_text}
@@ -74,15 +78,17 @@ def process_md_files(source_folder, output_file):
                     json.dump(result, outfile, ensure_ascii=False)
                     outfile.write("\n")
 
-
-def save_jsonl_and_md_files(source_folder, output_file):
-    pass
-
-
 if __name__ == "__main__":
     # 示例使用
-    source_folder = "你的提取文件夹路径"
-    output_file = "你的输出jsonl文件路径"
-    extract_files(source_folder, "你的输出文件夹路径")
-    # save_jsonl_and_md_files(source_folder, output_file)
-    pass
+    source_folder = r"/home/sunjinf/github_projet/nature_data/MinerU/magic-pdf"
+    target_folder = (
+        r"/home/sunjinf/github_projet/nature_data/data_after_process/out_standard_test"
+    )
+    jsonl_test_file = os.path.join(target_folder, "1content_list_json.jsonl")
+    md_test_file = os.path.join(target_folder, "1content_list_md.jsonl")
+    extract_files(source_folder, target_folder)
+    print("文件复制完成")
+    process_json_files(target_folder, jsonl_test_file)
+    print("json文件处理完成")
+    process_md_files(target_folder, md_test_file)
+    print("md文件处理完成")
