@@ -143,7 +143,7 @@ def model_infer(
 def process_document(document: dict):
     text = document.get("content", "")
     title = document.get("title", "")
-    chunks = chunk_text(text=text, chunk_size=6000)
+    chunks = chunk_text(text=text, chunk_size=3000)
     results = []
 
     for chunk in tqdm(chunks, total=len(chunks), desc="Processing chunks"):
@@ -188,10 +188,11 @@ if __name__ == "__main__":
     tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 
     # Sampling参数
-    sampling_params = SamplingParams(temperature=0.8, top_p=0.95, max_tokens=18000)
+    sampling_params = SamplingParams(temperature=0.8, top_p=0.95, max_tokens=30000)
     llm = LLM(
         model=MODEL_PATH,
         dtype="auto",
+        quantization="awq",
         tensor_parallel_size=1,
         tokenizer_mode="auto",
         gpu_memory_utilization=0.95,
