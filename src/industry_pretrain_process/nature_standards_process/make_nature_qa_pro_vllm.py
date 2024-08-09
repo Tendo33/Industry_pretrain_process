@@ -83,7 +83,7 @@ def parse_response(original: str) -> list[str]:
     for question in questions:
         question = re.sub(r"[0-9].\s*", "", question)
         if len(question) > 5:
-            result.append(question)
+            result.append(question.strip(".").strip())
     return result
 
 
@@ -206,7 +206,9 @@ if __name__ == "__main__":
         ) as f_out:
             documents = [json.loads(line) for line in input_file]
 
-            for document in tqdm(documents, total=len(documents), desc="Processing"):
+            for document in tqdm(
+                documents, total=len(documents), desc="Processing Documents"
+            ):
                 try:
                     results = process_document(document)
                     for result in results:
