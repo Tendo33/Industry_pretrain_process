@@ -74,7 +74,7 @@ ANSWER_SYSTEM_PROMPT = """
 3. 基于关键主题和信息，根据用户给定的问题生成严谨、有价值的回答。
 """
 # 检查文档是否已经处理过
-def is_document_processed(title, output_file_path):
+def document_already_processed(title, output_file_path):
     if not os.path.exists(output_file_path):
         return False
 
@@ -86,18 +86,18 @@ def is_document_processed(title, output_file_path):
 
 
 # 解析模型生成的原始响应，提取问题列表
-def parse_response(original: str) -> list[str]:
-    questions = original.split("\n")
-    result = []
-    for question in questions:
-        question = re.sub(r"[0-9].\s*", "", question)
-        if len(question) > 5:
-            result.append(question.strip(".").strip())
-    return result
+def extract_questions_from_response(response: str) -> list[str]:
+    questions = response.split("\n")
+    parsed_questions = [
+        re.sub(r"[0-9].\s*", "", question).strip(".").strip()
+        for question in questions
+        if len(question) > 5
+    ]
+    return parsed_questions
 
 
 # 将文本分割成指定大小的块
-def chunk_text(text: str, chunk_size: int = 4000):
+def split_text_into_chunks(text: str, chunk_size: int = 4000):
     return [text[i : i + chunk_size] for i in range(0, len(text), chunk_size)]
 
 
@@ -131,27 +131,13 @@ def apply_template(sys_prompt: str, user_prompt: str) -> str:
     return tokenized_chat
 
 
-# 调用模型进行推理
-def model_infer(
-    system_prompt: str,
-    user_prompt: str,
-    model_name: str,
-    temperature: float = 0.8,
-) -> str:
-    try:
-        sampling_params = SamplingParams(temperature=temperature)
-        output = llm.generate([system_prompt + user_prompt], sampling_params)
-        return output[0].outputs[0].text.strip()
-    except Exception as e:
-        logging.error(f"Error during model inference: {e}")
-        return ""
 
 
 # 处理文档，生成问题和回答
 def process_document(document: dict):
     text = document.get("content", "")
     title = document.get("title", "")
-    chunks = chunk_text(text=text, chunk_size=4000)
+    chunks = split_text_into_chunks(text=text, chunk_size=4000)
     results = []
 
     for chunk in tqdm(chunks, total=len(chunks), desc="Processing chunks"):
@@ -161,7 +147,7 @@ def process_document(document: dict):
         generated_question = generated_outputs[0].outputs[0].text.strip("\n").strip()
         if not generated_question:
             continue
-        output_q_list = parse_response(generated_question)
+        output_q_list = extract_questions_from_response(generated_question)
         question_answ_list = []
         for question in output_q_list:
             user_a_prompt = make_response_prompt(
@@ -194,8 +180,8 @@ if __name__ == "__main__":
     tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 
     # Sampling参数
-    sampling_params_q = SamplingParams(temperature=0.4, top_p=0.95, max_tokens=12000)
-    sampling_params_a = SamplingParams(temperature=0.8, top_p=0.95, max_tokens=30000)
+    sampling_params_q = SamplingParams(temperature=0.4, top_p=0.9, max_tokens=12000)
+    sampling_params_a = SamplingParams(temperature=0.7, top_p=0.9, max_tokens=30000)
     llm = LLM(
         model=MODEL_PATH,
         dtype="auto",
@@ -218,7 +204,7 @@ if __name__ == "__main__":
             documents, total=len(documents), desc="Processing Documents"
         ):
             title = document.get("title", "")
-            if is_document_processed(title, OUT_PATH):
+            if document_already_processed(title, OUT_PATH):
                 logging.info(
                     f"Document with title '{title}' already processed. Skipping."
                 )
@@ -233,7 +219,5 @@ if __name__ == "__main__":
                 if isinstance(results, list):
                     for result in results:
                         f_out.write(json.dumps(result, ensure_ascii=False) + "\n")
-                else:
-                    continue
             except Exception as e:
                 logging.error(f"Error processing document: {e}")
