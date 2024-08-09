@@ -10,8 +10,7 @@ from vllm import LLM, SamplingParams
 logging.basicConfig(level=logging.INFO)
 
 # 设置环境变量，指定CUDA可见设备为"0"
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-
+os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 
 
 # 定义问题生成系统的提示信息
@@ -148,20 +147,18 @@ def process_document(document: dict):
 
     for chunk in tqdm(chunks, total=len(chunks), desc="Processing chunks"):
         user_q_prompt = make_question_prompt(title=title, text=chunk)
-        query_for_process = apply_template(user_q_prompt)
+        query_for_process = apply_template(QUESTION_SYSTEM_PROMPT, user_q_prompt)
         generated_outputs = llm.generate(query_for_process, sampling_params)
         generated_question = generated_outputs[0].outputs[0].text.strip("\n").strip()
         if not generated_question:
             continue
         output_q_list = parse_response(generated_question)
         question_answ_list = []
-        for question in tqdm(
-            output_q_list, total=len(output_q_list), desc="Processing questions"
-        ):
+        for question in output_q_list:
             user_a_prompt = make_response_prompt(
                 title=title, text=chunk, question=question
             )
-            query_r_for_process = apply_template(user_a_prompt)
+            query_r_for_process = apply_template(ANSWER_SYSTEM_PROMPT, user_a_prompt)
             question_answ_list.append(query_r_for_process)
         generated_a_outputs = llm.generate(question_answ_list, sampling_params)
 
@@ -198,8 +195,10 @@ if __name__ == "__main__":
         gpu_memory_utilization=0.95,
         enforce_eager=True,
     )
-    FILE_PATH = r"/home/sunjinf/github_projet/nature_data/data_after_process/out_standard_test/1content_list_json.jsonl"
-    OUT_PATH = r"/home/sunjinf/github_projet/nature_data/data_after_process/out_standard_test/1content_list_json_qa.jsonl"
+    FILE_PATH = (
+        r"/workspace/sunjinfeng/github_projet/data/nature_data/1content_list_json.jsonl"
+    )
+    OUT_PATH = r"/workspace/sunjinfeng/github_projet/data/nature_data/1content_list_json_qa_vllm.jsonl"
 
     try:
         with open(FILE_PATH, "r", encoding="utf-8") as input_file, open(
