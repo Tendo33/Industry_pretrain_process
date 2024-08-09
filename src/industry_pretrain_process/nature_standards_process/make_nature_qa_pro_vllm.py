@@ -75,6 +75,17 @@ ANSWER_SYSTEM_PROMPT = """
 3. 基于关键主题和信息，根据用户给定的问题生成严谨、有价值的回答。
 4. 将回答以详细且严谨的描述风格呈现给用户。
 """
+# 检查文档是否已经处理过
+def is_document_processed(title, output_file_path):
+    if not os.path.exists(output_file_path):
+        return False
+
+    with open(output_file_path, "r", encoding="utf-8") as f_out:
+        for line in f_out:
+            if json.loads(line).get("title") == title:
+                return True
+    return False
+
 
 # 解析模型生成的原始响应，提取问题列表
 def parse_response(original: str) -> list[str]:
@@ -209,6 +220,12 @@ if __name__ == "__main__":
             for document in tqdm(
                 documents, total=len(documents), desc="Processing Documents"
             ):
+                title = document.get("title", "")
+                if is_document_processed(title, OUT_PATH):
+                    logging.info(
+                        f"Document with title '{title}' already processed. Skipping."
+                    )
+                    continue
                 try:
                     results = process_document(document)
                     for result in results:
