@@ -12,9 +12,8 @@ logging.basicConfig(level=logging.INFO)
 # 设置环境变量，指定CUDA可见设备为"2"
 os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 
-
-# 定义问题生成系统的提示信息
-QUESTION_SYSTEM_PROMPT = """
+# 定义生成问题系统的提示信息
+SYSTEM_PROMPT_QUESTION_GENERATION = """
 # Role: 自然资源行业问题分析师
 ## Profile
 - Language: 简体中文
@@ -46,8 +45,8 @@ QUESTION_SYSTEM_PROMPT = """
 4. 将生成的问题以详细且严谨的描述风格呈现给用户。
 """
 
-# 定义问题回答系统的提示信息
-ANSWER_SYSTEM_PROMPT = """
+# 定义生成回答系统的提示信息
+SYSTEM_PROMPT_ANSWER_GENERATION = """
 # Role: 自然资源行业问题回答专家
 ## Profile
 - Language: 简体中文
@@ -73,117 +72,138 @@ ANSWER_SYSTEM_PROMPT = """
 2. 阅读并分析文本，识别关键主题和信息。
 3. 基于关键主题和信息，根据用户给定的问题生成严谨、有价值的回答。
 """
+
 # 检查文档是否已经处理过
-def document_already_processed(title, output_file_path):
+def is_document_processed(document_title, output_file_path):
     if not os.path.exists(output_file_path):
         return False
 
-    with open(output_file_path, "r", encoding="utf-8") as f_out:
-        for line in f_out:
-            if json.loads(line).get("title") == title:
+    with open(output_file_path, "r", encoding="utf-8") as output_file:
+        for line in output_file:
+            if json.loads(line).get("title") == document_title:
                 return True
     return False
 
 
 # 解析模型生成的原始响应，提取问题列表
-def extract_questions_from_response(response: str) -> list[str]:
-    questions = response.split("\n")
-    parsed_questions = [
+def parse_questions_from_response(model_response: str) -> list[str]:
+    questions = model_response.split("\n")
+    extracted_questions = [
         re.sub(r"[0-9].\s*", "", question).strip(".").strip()
         for question in questions
         if len(question) > 5
     ]
-    return parsed_questions
+    return extracted_questions
 
 
 # 将文本分割成指定大小的块
-def split_text_into_chunks(text: str, chunk_size: int = 4000):
-    return [text[i : i + chunk_size] for i in range(0, len(text), chunk_size)]
+def chunk_text(text_content: str, max_chunk_size: int = 4000):
+    return [
+        text_content[i : i + max_chunk_size]
+        for i in range(0, len(text_content), max_chunk_size)
+    ]
 
 
-# 生成问题提示信息
-def make_question_prompt(title: str, text: str) -> str:
+# 生成问题的提示信息
+def create_question_prompt(document_title: str, text_chunk: str) -> str:
     prompt = f"""
-    这是《{title}》文件中的一个段落chunk，根据下面的段落文字提取出若干个中文的详细并严谨的问题，名称主语完整无误，不能使用类似“本文件，表2，表A”这类似笼统以及局限的代词。：
-    {text}
+    这是《{document_title}》文件中的一个段落，根据下面的段落文字提取出若干个中文的详细并严谨的问题，名称主语完整无误，不能使用类似“本文件，表2，表A”这类似笼统以及局限的代词：
+    {text_chunk}
     """
     return prompt
 
 
-# 生成回答提示信息
-def make_response_prompt(title: str, question: str, text: str) -> str:
+# 生成回答的提示信息
+def create_answer_prompt(document_title: str, question: str, text_chunk: str) -> str:
     prompt = f"""
-    这是《{title}》文件中的一个段落chunk:{text}。
+    这是《{document_title}》文件中的一个段落:{text_chunk}。
     根据这个段落中的信息严谨地回答下面的问题：
     {question}
     """
     return prompt
 
 
-def apply_template(sys_prompt: str, user_prompt: str) -> str:
+# 将系统提示和用户提示应用于模板
+def format_template(system_prompt: str, user_prompt: str) -> str:
     messages = [
-        {"role": "system", "content": sys_prompt},
+        {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_prompt},
     ]
-    tokenized_chat = tokenizer.apply_chat_template(
+    formatted_chat = tokenizer.apply_chat_template(
         messages, tokenize=False, add_generation_prompt=True
     )
-    return tokenized_chat
-
-
+    return formatted_chat
 
 
 # 处理文档，生成问题和回答
-def process_document(document: dict):
-    text = document.get("content", "")
-    title = document.get("title", "")
-    chunks = split_text_into_chunks(text=text, chunk_size=4000)
-    results = []
+def process_document_data(document_data: dict):
+    document_text = document_data.get("content", "")
+    document_title = document_data.get("title", "")
+    text_chunks = chunk_text(text_content=document_text, max_chunk_size=4000)
+    processed_results = []
 
-    for chunk in tqdm(chunks, total=len(chunks), desc="Processing chunks"):
-        user_q_prompt = make_question_prompt(title=title, text=chunk)
-        query_for_process = apply_template(QUESTION_SYSTEM_PROMPT, user_q_prompt)
-        generated_outputs = llm.generate(query_for_process, sampling_params_q)
-        generated_question = generated_outputs[0].outputs[0].text.strip("\n").strip()
-        if not generated_question:
+    for text_chunk in tqdm(
+        text_chunks, total=len(text_chunks), desc="Processing chunks"
+    ):
+        question_prompt = create_question_prompt(
+            document_title=document_title, text_chunk=text_chunk
+        )
+        formatted_question = format_template(
+            SYSTEM_PROMPT_QUESTION_GENERATION, question_prompt
+        )
+        question_outputs = llm.generate(formatted_question, sampling_params_question)
+        extracted_questions = question_outputs[0].outputs[0].text.strip("\n").strip()
+
+        if not extracted_questions:
             continue
-        output_q_list = extract_questions_from_response(generated_question)
-        question_answ_list = []
-        for question in output_q_list:
-            user_a_prompt = make_response_prompt(
-                title=title, text=chunk, question=question
-            )
-            query_r_for_process = apply_template(ANSWER_SYSTEM_PROMPT, user_a_prompt)
-            question_answ_list.append(query_r_for_process)
-        generated_a_outputs = llm.generate(question_answ_list, sampling_params_a)
 
-        output_a_list = []
-        for i, document in enumerate(generated_a_outputs):
-            generated_text = generated_a_outputs[i].outputs[0].text.strip("\n").strip()
-            output_a_list.append(generated_text)
-        for q, a in zip(output_q_list, output_a_list):
-            temp_dict = {
-                "title": title,
-                "question": q,
-                "answer": a,
+        parsed_questions = parse_questions_from_response(extracted_questions)
+        question_answer_prompts = []
+
+        for question in parsed_questions:
+            answer_prompt = create_answer_prompt(
+                document_title=document_title, text_chunk=text_chunk, question=question
+            )
+            formatted_answer = format_template(
+                SYSTEM_PROMPT_ANSWER_GENERATION, answer_prompt
+            )
+            question_answer_prompts.append(formatted_answer)
+
+        answer_outputs = llm.generate(question_answer_prompts, sampling_params_answer)
+        generated_answers = []
+
+        for i, output in enumerate(answer_outputs):
+            generated_text = output.outputs[0].text.strip("\n").strip()
+            generated_answers.append(generated_text)
+
+        for question, answer in zip(parsed_questions, generated_answers):
+            result_entry = {
+                "title": document_title,
+                "question": question,
+                "answer": answer,
             }
-            print(temp_dict)
+            print(result_entry)
             print("*" * 50)
-            results.append(temp_dict)
-    return results
+            processed_results.append(result_entry)
+
+    return processed_results
 
 
 # 主函数，处理输入文件并生成输出文件
 if __name__ == "__main__":
     # 模型和tokenizer路径
-    MODEL_PATH = r"/workspace/share_data/base_llms/Qwen2-72B-Instruct-AWQ"
-    tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
+    MODEL_DIRECTORY = r"/workspace/share_data/base_llms/Qwen2-72B-Instruct-AWQ"
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_DIRECTORY)
 
     # Sampling参数
-    sampling_params_q = SamplingParams(temperature=0.4, top_p=0.9, max_tokens=12000)
-    sampling_params_a = SamplingParams(temperature=0.7, top_p=0.9, max_tokens=30000)
+    sampling_params_question = SamplingParams(
+        temperature=0.4, top_p=0.9, max_tokens=12000
+    )
+    sampling_params_answer = SamplingParams(
+        temperature=0.7, top_p=0.9, max_tokens=30000
+    )
     llm = LLM(
-        model=MODEL_PATH,
+        model=MODEL_DIRECTORY,
         dtype="auto",
         quantization="awq",
         tensor_parallel_size=1,
@@ -191,33 +211,36 @@ if __name__ == "__main__":
         gpu_memory_utilization=0.95,
         enforce_eager=True,
     )
-    FILE_PATH = (
+    INPUT_FILE_PATH = (
         r"/workspace/sunjinfeng/github_projet/data/nature_data/1content_list_json.jsonl"
     )
-    OUT_PATH = r"/workspace/sunjinfeng/github_projet/data/nature_data/1content_list_json_qa_vllm.jsonl"
+    OUTPUT_FILE_PATH = r"/workspace/sunjinfeng/github_projet/data/nature_data/1content_list_json_qa_vllm.jsonl"
 
-    with open(FILE_PATH, "r", encoding="utf-8") as input_file:
+    with open(INPUT_FILE_PATH, "r", encoding="utf-8") as input_file:
         documents = [json.loads(line) for line in input_file]
 
-    with open(OUT_PATH, "a", encoding="utf-8") as f_out:
-        for document in tqdm(
+    with open(OUTPUT_FILE_PATH, "a", encoding="utf-8") as output_file:
+        for document_data in tqdm(
             documents, total=len(documents), desc="Processing Documents"
         ):
-            title = document.get("title", "")
-            if document_already_processed(title, OUT_PATH):
+            document_title = document_data.get("title", "")
+            if is_document_processed(document_title, OUTPUT_FILE_PATH):
                 logging.info(
-                    f"Document with title '{title}' already processed. Skipping."
+                    f"Document with title '{document_title}' already processed. Skipping."
                 )
                 continue
             try:
-                results = process_document(document)
-                if not results:
+                results = process_document_data(document_data)
+                if not results or not isinstance(results, list):
                     logging.warning(
-                        f"No results found for document with title '{title}'"
+                        f"No results found for document with title '{document_title}'."
                     )
                     continue
-                if isinstance(results, list):
-                    for result in results:
-                        f_out.write(json.dumps(result, ensure_ascii=False) + "\n")
+                for result_entry in results:
+                    output_file.write(
+                        json.dumps(result_entry, ensure_ascii=False) + "\n"
+                    )
             except Exception as e:
-                logging.error(f"Error processing document: {e}")
+                logging.error(
+                    f"Failed to process document with title '{document_title}': {e}"
+                )
