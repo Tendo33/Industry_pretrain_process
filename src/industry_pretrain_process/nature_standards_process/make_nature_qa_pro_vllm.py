@@ -188,7 +188,7 @@ if __name__ == "__main__":
     tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 
     # Sampling参数
-    sampling_params = SamplingParams(temperature=0.2, top_p=0.95, max_tokens=12000)
+    sampling_params = SamplingParams(temperature=0.8, top_p=0.95, max_tokens=18000)
     llm = LLM(
         model=MODEL_PATH,
         dtype="auto",
