@@ -62,9 +62,10 @@ def process_json_files(source_folder, output_file):
                         combined_text, remove_parentheses=False
                     )
                     combined_text = combined_text.replace("\n\n", "\n")
-                    result = {"title": file_name, "content": combined_text}
-                    json.dump(result, outfile, ensure_ascii=False)
-                    outfile.write("\n")
+                    if len(combined_text) > 300:
+                        result = {"title": file_name, "content": combined_text}
+                        json.dump(result, outfile, ensure_ascii=False)
+                        outfile.write("\n")
 
 
 def process_md_files(source_folder, output_file):
@@ -79,9 +80,11 @@ def process_md_files(source_folder, output_file):
                 # 处理md文件
                 with open(file_path, "r", encoding="utf-8") as mf:
                     content = mf.read()
-                    result = {"title": file_name, "content": content}
-                    json.dump(result, outfile, ensure_ascii=False)
-                    outfile.write("\n")
+                    if len(content) > 300:
+                        result = {"title": file_name, "content": content}
+                        json.dump(result, outfile, ensure_ascii=False)
+                        outfile.write("\n")
+
 
 if __name__ == "__main__":
     # 示例使用

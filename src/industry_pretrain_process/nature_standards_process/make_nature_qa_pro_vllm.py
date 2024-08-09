@@ -210,26 +210,30 @@ if __name__ == "__main__":
     )
     OUT_PATH = r"/workspace/sunjinfeng/github_projet/data/nature_data/1content_list_json_qa_vllm.jsonl"
 
-    try:
-        with open(FILE_PATH, "r", encoding="utf-8") as input_file:
-            documents = [json.loads(line) for line in input_file]
+    with open(FILE_PATH, "r", encoding="utf-8") as input_file:
+        documents = [json.loads(line) for line in input_file]
 
-        with open(OUT_PATH, "a", encoding="utf-8") as f_out:
-            for document in tqdm(
-                documents, total=len(documents), desc="Processing Documents"
-            ):
-                title = document.get("title", "")
-                if is_document_processed(title, OUT_PATH):
-                    logging.info(
-                        f"Document with title '{title}' already processed. Skipping."
+    with open(OUT_PATH, "a", encoding="utf-8") as f_out:
+        for document in tqdm(
+            documents, total=len(documents), desc="Processing Documents"
+        ):
+            title = document.get("title", "")
+            if is_document_processed(title, OUT_PATH):
+                logging.info(
+                    f"Document with title '{title}' already processed. Skipping."
+                )
+                continue
+            try:
+                results = process_document(document)
+                if not results:
+                    logging.warning(
+                        f"No results found for document with title '{title}'"
                     )
                     continue
-                try:
-                    results = process_document(document)
+                if isinstance(results, list):
                     for result in results:
                         f_out.write(json.dumps(result, ensure_ascii=False) + "\n")
-                except Exception as e:
-                    logging.error(f"Error processing document: {e}")
-
-    except Exception as e:
-        logging.error(f"Error opening files: {e}")
+                else:
+                    continue
+            except Exception as e:
+                logging.error(f"Error processing document: {e}")
