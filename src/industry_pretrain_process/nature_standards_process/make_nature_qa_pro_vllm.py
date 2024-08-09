@@ -9,7 +9,7 @@ from vllm import LLM, SamplingParams
 # 配置日志记录，设置日志级别为INFO
 logging.basicConfig(level=logging.INFO)
 
-# 设置环境变量，指定CUDA可见设备为"0"
+# 设置环境变量，指定CUDA可见设备为"2"
 os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 
 
@@ -32,18 +32,18 @@ QUESTION_SYSTEM_PROMPT = """
 
 ## Rules
 - 问题必须宏观、有价值，并且涵盖多个相关话题。
-- 问题表述必须详细且使用严谨的描述风格。
 - 问题不要带任何格式，必须为纯文本。
 - 避免提出过于狭窄或琐碎的问题。
+- 避免文中不是正文的信息（出版时间，参考内容，附件，出版社）成为问题。
 - 不要根据给定段落中的狭义信息提问，问题必须宏观，普世，困惑度低。
-- 生成的问题要严谨，名称主语完整无误，不能使用类似“本文件，表2，表A”这类似笼统以及局限的代词。
-- 输出的问题按照“1.xx \n 2.xx ”的格式。
+- 生成的问题要严谨，名称主语完整无误，不能使用类似“本标准，本文件，表2，表A，附录”这类似笼统以及局限的代词。
+- 输出的问题按照“1.xx\n2.xx”的格式。
 
 ## Workflow
 1. 用户提供具体的国家标准文件、论文或书籍的片段信息。
 2. 分析师阅读并分析文本，识别关键主题和观点。
 3. 基于关键主题和观点，分析师生成宏观、有价值且涵盖多个相关话题的问题。
-4. 分析师将问题以详细且严谨的描述风格呈现给用户。
+4. 将生成的问题以详细且严谨的描述风格呈现给用户。
 """
 
 # 定义问题回答系统的提示信息
@@ -51,7 +51,7 @@ ANSWER_SYSTEM_PROMPT = """
 # Role: 自然资源行业问题回答专家
 ## Profile
 - Language: 简体中文
-- Description: 专门负责根据给定的自然资源行业的国家标准文件、论文或书籍片段作为知识，根据这些知识回答宏观、有价值且涵盖多个相关话题的问题。
+- Description: 专门负责根据给定的自然资源行业的国家标准文件、论文或书籍片段作为知识，根据这些知识回答用户提出的问题。
 
 ## Knowledges
 - 自然资源行业的基本概念和原理。
@@ -60,7 +60,6 @@ ANSWER_SYSTEM_PROMPT = """
 
 ## Skills
 - 高效阅读和理解复杂文本。
-- 提炼关键信息和核心观点。
 - 生成有深度和广度的问题回答。
 
 ## Rules
@@ -73,7 +72,6 @@ ANSWER_SYSTEM_PROMPT = """
 1. 用户提供具体的国家标准文件、论文或书籍的片段信息。
 2. 阅读并分析文本，识别关键主题和信息。
 3. 基于关键主题和信息，根据用户给定的问题生成严谨、有价值的回答。
-4. 将回答以详细且严谨的描述风格呈现给用户。
 """
 # 检查文档是否已经处理过
 def is_document_processed(title, output_file_path):
@@ -153,13 +151,13 @@ def model_infer(
 def process_document(document: dict):
     text = document.get("content", "")
     title = document.get("title", "")
-    chunks = chunk_text(text=text, chunk_size=3000)
+    chunks = chunk_text(text=text, chunk_size=4000)
     results = []
 
     for chunk in tqdm(chunks, total=len(chunks), desc="Processing chunks"):
         user_q_prompt = make_question_prompt(title=title, text=chunk)
         query_for_process = apply_template(QUESTION_SYSTEM_PROMPT, user_q_prompt)
-        generated_outputs = llm.generate(query_for_process, sampling_params)
+        generated_outputs = llm.generate(query_for_process, sampling_params_q)
         generated_question = generated_outputs[0].outputs[0].text.strip("\n").strip()
         if not generated_question:
             continue
@@ -171,7 +169,7 @@ def process_document(document: dict):
             )
             query_r_for_process = apply_template(ANSWER_SYSTEM_PROMPT, user_a_prompt)
             question_answ_list.append(query_r_for_process)
-        generated_a_outputs = llm.generate(question_answ_list, sampling_params)
+        generated_a_outputs = llm.generate(question_answ_list, sampling_params_a)
 
         output_a_list = []
         for i, document in enumerate(generated_a_outputs):
@@ -196,7 +194,8 @@ if __name__ == "__main__":
     tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 
     # Sampling参数
-    sampling_params = SamplingParams(temperature=0.8, top_p=0.95, max_tokens=30000)
+    sampling_params_q = SamplingParams(temperature=0.4, top_p=0.95, max_tokens=12000)
+    sampling_params_a = SamplingParams(temperature=0.8, top_p=0.95, max_tokens=30000)
     llm = LLM(
         model=MODEL_PATH,
         dtype="auto",
@@ -212,11 +211,10 @@ if __name__ == "__main__":
     OUT_PATH = r"/workspace/sunjinfeng/github_projet/data/nature_data/1content_list_json_qa_vllm.jsonl"
 
     try:
-        with open(FILE_PATH, "r", encoding="utf-8") as input_file, open(
-            OUT_PATH, "a", encoding="utf-8"
-        ) as f_out:
+        with open(FILE_PATH, "r", encoding="utf-8") as input_file:
             documents = [json.loads(line) for line in input_file]
 
+        with open(OUT_PATH, "a", encoding="utf-8") as f_out:
             for document in tqdm(
                 documents, total=len(documents), desc="Processing Documents"
             ):
