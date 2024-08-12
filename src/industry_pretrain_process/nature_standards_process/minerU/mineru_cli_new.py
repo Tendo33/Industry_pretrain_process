@@ -72,9 +72,7 @@ if __name__ == "__main__":
     directory = (
         r"/workspace/sunjinfeng/github_projet/nature_data/data_origin/origin_paper"
     )
-    output_base_dir = (
-        r"/workspace/sunjinfeng/github_projet/nature_data/data_after_process/out_paper"
-    )
+    output_base_dir = r"/workspace/sunjinfeng/github_projet/nature_data/data_after_process/out_paper_mineru"
 
     process_pdfs_in_directory(
         directory=directory, output_base_dir=output_base_dir, method="ocr"
