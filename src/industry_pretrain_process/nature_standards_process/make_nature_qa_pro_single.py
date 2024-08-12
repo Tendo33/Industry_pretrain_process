@@ -1,4 +1,4 @@
-import logging
+from nb_log import get_logger
 import os
 import json
 import re
@@ -7,8 +7,12 @@ from transformers import AutoTokenizer
 from vllm import LLM, SamplingParams
 
 # 配置日志记录，设置日志级别为INFO
-logging.basicConfig(level=logging.INFO)
-
+logger = get_logger(
+    "make_nature_qa_pro_single",
+    formatter_template=5,
+    log_path="../../../logs/",
+    log_filename="make_nature_qa_pro_single.log",
+)
 # 设置环境变量，指定CUDA可见设备为"2"
 os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 
@@ -140,7 +144,7 @@ def format_template(system_prompt: str, user_prompt: str) -> str:
 def process_document_data(document_data: dict):
     document_text = document_data.get("content", "")
     document_title = document_data.get("title", "")
-    text_chunks = chunk_text(text_content=document_text, max_chunk_size=4000)
+    text_chunks = chunk_text(text_content=document_text, max_chunk_size=5000)
     processed_results = []
 
     for text_chunk in tqdm(
@@ -159,7 +163,6 @@ def process_document_data(document_data: dict):
             continue
 
         parsed_questions = parse_questions_from_response(extracted_questions)
-        question_answer_prompts = []
 
         for question in parsed_questions:
             answer_prompt = create_answer_prompt(
@@ -168,20 +171,15 @@ def process_document_data(document_data: dict):
             formatted_answer = format_template(
                 SYSTEM_PROMPT_ANSWER_GENERATION, answer_prompt
             )
-            question_answer_prompts.append(formatted_answer)
 
-        answer_outputs = llm.generate(question_answer_prompts, sampling_params_answer)
-        generated_answers = []
+            answer_outputs = llm.generate(formatted_answer, sampling_params_answer)
 
-        for i, output in enumerate(answer_outputs):
-            generated_text = output.outputs[0].text.strip("\n").strip()
-            generated_answers.append(generated_text)
+            generated_text = answer_outputs[0].outputs[0].text.strip("\n").strip()
 
-        for question, answer in zip(parsed_questions, generated_answers):
             result_entry = {
                 "title": document_title,
                 "question": question,
-                "answer": answer,
+                "answer": generated_text,
             }
             print(result_entry)
             print("*" * 50)
@@ -198,10 +196,10 @@ if __name__ == "__main__":
 
     # Sampling参数
     sampling_params_question = SamplingParams(
-        temperature=0.4, top_p=0.9, max_tokens=12000
+        temperature=0.3, top_p=0.9, max_tokens=12000
     )
     sampling_params_answer = SamplingParams(
-        temperature=0.7, top_p=0.9, max_tokens=30000
+        temperature=0.7, top_p=0.9, max_tokens=18000
     )
     llm = LLM(
         model=MODEL_DIRECTORY,
@@ -219,11 +217,11 @@ if __name__ == "__main__":
 
     with open(INPUT_FILE_PATH, "r", encoding="utf-8") as input_file:
         documents = [json.loads(line) for line in input_file]
-        documents = [
-            {**data, "content": data["content"][:20000]}
-            for data in documents
-            if data.get("content")
-        ]
+        # documents = [
+        #     {**data, "content": data["content"][:20000]}
+        #     for data in documents
+        #     if data.get("content")
+        # ]
 
     with open(OUTPUT_FILE_PATH, "a", encoding="utf-8") as output_file:
         for document_data in tqdm(
@@ -231,14 +229,14 @@ if __name__ == "__main__":
         ):
             document_title = document_data.get("title", "")
             if is_document_processed(document_title, OUTPUT_FILE_PATH):
-                logging.info(
+                logger.info(
                     f"Document with title '{document_title}' already processed. Skipping."
                 )
                 continue
             try:
                 results = process_document_data(document_data)
                 if not results or not isinstance(results, list):
-                    logging.warning(
+                    logger.warning(
                         f"No results found for document with title '{document_title}'."
                     )
                     continue
@@ -247,6 +245,6 @@ if __name__ == "__main__":
                         json.dumps(result_entry, ensure_ascii=False) + "\n"
                     )
             except Exception as e:
-                logging.error(
+                logger.error(
                     f"Failed to process document with title '{document_title}': {e}"
                 )
