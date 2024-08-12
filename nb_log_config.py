@@ -35,7 +35,9 @@ USE_BULK_STDOUT_ON_WINDOWS = False  # 在win上是否每隔0.1秒批量stdout,wi
 
 DEFAULUT_USE_COLOR_HANDLER = True  # 是否默认使用有彩的日志。
 DEFAULUT_IS_USE_LOGURU_STREAM_HANDLER = False  # 是否默认使用 loguru的控制台日志，而非是nb_log的ColorHandler
-DISPLAY_BACKGROUD_COLOR_IN_CONSOLE = True  # 在控制台是否显示彩色块状的日志。为False则不使用大块的背景颜色。
+DISPLAY_BACKGROUD_COLOR_IN_CONSOLE = (
+    False  # 在控制台是否显示彩色块状的日志。为False则不使用大块的背景颜色。
+)
 AUTO_PATCH_PRINT = True  # 是否自动打print的猴子补丁，如果打了猴子补丁，print自动变色和可点击跳转。
 
 # 以下是屏蔽控制台所谓的烦人提示项,如果要关闭,先了解下这三个提示是什么,有的pythoner又菜又爱屏蔽提示,然后不知道为什么,这样的人太烦人了.
@@ -53,7 +55,7 @@ LOG_FILE_BACKUP_COUNT = 10  # 对同一个日志文件，默认最多备份几�
 
 LOG_PATH = os.getenv("LOG_PATH")  # 优先从环境变量获取,启动代码之前可以 export LOG_PATH = '/你的日志目录/'
 if not LOG_PATH:
-    LOG_PATH = './logs'  # 默认的日志文件夹,如果不写明磁盘名，则是项目代码所在磁盘的根目录下的/pythonlogs
+    LOG_PATH = "./logs/"  # 默认的日志文件夹,如果不写明磁盘名，则是项目代码所在磁盘的根目录下的/pythonlogs
     # LOG_PATH = Path(__file__).absolute().parent / Path("pythonlogs")   #这么配置就会自动在你项目的根目录下创建pythonlogs文件夹了并写入。
     if os.name == 'posix':  # linux非root用户和mac用户无法操作 /pythonlogs 文件夹，没有权限，默认修改为   home/[username]  下面了。例如你的linux用户名是  xiaomin，那么默认会创建并在 /home/xiaomin/pythonlogs文件夹下写入日志文件。
         home_path = os.environ.get("HOME", '/')  # 这个是获取linux系统的当前用户的主目录，不需要亲自设置
