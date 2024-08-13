@@ -169,22 +169,28 @@ def process_document_data(document_data: dict):
             )
             question_answer_prompts.append(formatted_answer)
 
-        answer_outputs = llm.generate(question_answer_prompts, sampling_params_answer)
-        generated_answers = []
+        # 按照每个chunk最多包含5个prompt的大小进行分块
+        chunk_size = 5
+        for i in range(0, len(question_answer_prompts), chunk_size):
+            prompt_chunk = question_answer_prompts[i : i + chunk_size]
+            answer_outputs = llm.generate(prompt_chunk, sampling_params_answer)
+            generated_answers = []
 
-        for i, output in enumerate(answer_outputs):
-            generated_text = output.outputs[0].text.strip("\n").strip()
-            generated_answers.append(generated_text)
+            for output in answer_outputs:
+                generated_text = output.outputs[0].text.strip("\n").strip()
+                generated_answers.append(generated_text)
 
-        for question, answer in zip(parsed_questions, generated_answers):
-            result_entry = {
-                "title": document_title,
-                "question": question,
-                "answer": answer,
-            }
-            print(result_entry)
-            print("*" * 50)
-            processed_results.append(result_entry)
+            for question, answer in zip(
+                parsed_questions[i : i + chunk_size], generated_answers
+            ):
+                result_entry = {
+                    "title": document_title,
+                    "question": question,
+                    "answer": answer,
+                }
+                print(result_entry)
+                print("*" * 50)
+                processed_results.append(result_entry)
 
     return processed_results
 
@@ -218,11 +224,11 @@ if __name__ == "__main__":
 
     with open(INPUT_FILE_PATH, "r", encoding="utf-8") as input_file:
         documents = [json.loads(line) for line in input_file]
-        documents = [
-            {**data, "content": data["content"][:20000]}
-            for data in documents
-            if data.get("content")
-        ]
+        # documents = [
+        #     {**data, "content": data["content"][:20000]}
+        #     for data in documents
+        #     if data.get("content")
+        # ]
 
     with open(OUTPUT_FILE_PATH, "a", encoding="utf-8") as output_file:
         for document_data in tqdm(
