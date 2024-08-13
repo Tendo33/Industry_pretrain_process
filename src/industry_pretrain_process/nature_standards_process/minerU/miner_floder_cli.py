@@ -80,7 +80,7 @@ def process_pdfs_in_directory(
 
 if __name__ == "__main__":
     directory = (
-        r"/workspace/sunjinfeng/github_projet/nature_data/data_origin/origin_standard"
+        r"/workspace/sunjinfeng/github_projet/nature_data/data_origin/origin_paper"
     )
 
     model_path = r""
