@@ -90,10 +90,10 @@ if __name__ == "__main__":
     # 示例使用
     source_folder = r"/home/sunjinf/github_projet/nature_data/MinerU/magic-pdf"
     target_folder = (
-        r"/home/sunjinf/github_projet/nature_data/data_after_process/out_standard_test"
+        r"/home/sunjinf/github_projet/nature_data/data_after_process/out_paper_mineru"
     )
-    jsonl_test_file = os.path.join(target_folder, "1content_list_json.jsonl")
-    md_test_file = os.path.join(target_folder, "1content_list_md.jsonl")
+    jsonl_test_file = os.path.join(target_folder, "1out_paper_mineru_json.jsonl")
+    md_test_file = os.path.join(target_folder, "1out_paper_mineru_md.jsonl")
     extract_files(source_folder, target_folder)
     print("文件复制完成")
     process_json_files(target_folder, jsonl_test_file)
