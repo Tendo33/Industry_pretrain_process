@@ -1,7 +1,8 @@
 import json
+import os
+from concurrent.futures import ProcessPoolExecutor
 from utils.file_clean_util import extract_key_information
 from utils.save_file import save_to_jsonl
-
 
 def create_temp_dict(
     content_list: list[str],
@@ -91,10 +92,6 @@ def process_base(source_file_path: str, target_file_path: str) -> None:
     # 将清理后的数据和提取的信息保存为JSONL文件
     data_list = create_temp_dict(
         conversations,
-        dict_temp["lang_score"],
-        dict_temp["special_char_ratio"],
-        dict_temp["char_rep_ratio"],
-        dict_temp["perplexity"],
         task_category,
         other_task_category,
         difficulty,
@@ -105,6 +102,18 @@ def process_base(source_file_path: str, target_file_path: str) -> None:
     print(len(data_list))
     save_to_jsonl(data_list, target_file_path)
 
+def process_files_in_parallel(source_directory: str, target_directory: str) -> None:
+    files = [f for f in os.listdir(source_directory) if f.endswith(".jsonl")]
+    file_pairs = [
+        (os.path.join(source_directory, f), os.path.join(target_directory, f))
+        for f in files
+    ]
+
+    with ProcessPoolExecutor(max_workers=256) as executor:
+        executor.map(process_base, file_pairs)
+
 
 if __name__ == "__main__":
-    pass
+    source_dir = "path/to/source_directory"
+    target_dir = "path/to/target_directory"
+    process_files_in_parallel(source_dir, target_dir)
