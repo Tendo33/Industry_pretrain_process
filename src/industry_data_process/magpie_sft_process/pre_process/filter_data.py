@@ -5,7 +5,7 @@ from utils.file_clean_util import extract_key_information
 from utils.save_file import save_to_jsonl
 
 def create_temp_dict(
-    conversations_list: list[str],
+    conversations_list: list[dict],
     task_category_list: list[str],
     other_task_category_list: list[str],
     difficulty_list: list[str],
@@ -32,16 +32,40 @@ def create_temp_dict(
         llama_guard_2_list,
         language_list,
     ):
-        temp_dict = {
-            "conversations": conversations,
-            "task_category": task_category,
-            "other_task_category": other_task_category,
-            "difficulty": difficulty,
-            "input_quality": input_quality,
-            "llama_guard_2": llama_guard_2,
-            "language": language,
-        }
-        temp_list.append(temp_dict)
+        is_valid = True
+        question = conversations[0]["value"]
+        answer = conversations[1]["value"]
+        all_text = question + answer
+        if len(all_text) > 5000 or len(all_text) < 100:
+            is_valid = False
+
+        if input_quality == "poor" or input_quality == "very poor":
+            is_valid = False
+        if llama_guard_2 != "safe":
+            is_valid = False
+        if language != "ZH" and language != "EN":
+            is_valid = False
+        if repeat_count >= 2:
+            is_valid = False
+
+        if (
+            "Coding" in task_category
+            or "Coding" in other_task_category
+            or "Math" in task_category
+            or "Math" in other_task_category
+        ):
+            is_valid = False
+        if is_valid:
+            temp_dict = {
+                "conversations": conversations,
+                "task_category": task_category,
+                "other_task_category": other_task_category,
+                "difficulty": difficulty,
+                "input_quality": input_quality,
+                "llama_guard_2": llama_guard_2,
+                "language": language,
+            }
+            temp_list.append(temp_dict)
 
     return temp_list
 
@@ -54,6 +78,7 @@ def process_base(source_file_path: str, target_file_path: str) -> None:
             "difficulty",
             "input_quality",
             "llama_guard_2",
+            "repeat_count",
             "language",
         ]
         dict_temp = extract_key_information(source_file_path, keys)
@@ -85,6 +110,7 @@ def process_files_in_parallel(source_directory: str, target_directory: str) -> N
 
     max_workers = min(32, os.cpu_count() or 1)
     with ProcessPoolExecutor(max_workers=max_workers) as executor:
+        # results = executor.map(process_base, file_pairs)
         futures = [executor.submit(process_base, *pair) for pair in file_pairs]
         for future in futures:
             try:
