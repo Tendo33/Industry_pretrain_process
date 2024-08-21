@@ -59,32 +59,32 @@ def create_temp_dict(
         question = conversations[0]["value"]
         answer = conversations[1]["value"]
         all_text = question + answer
-    # 文本长度检查
-    if len(all_text) > 5000 or len(all_text) < 100:
-        is_valid = False
-
-    # 输入质量检查
-    if input_quality == "poor" or input_quality == "very poor":
-        is_valid = False
-
-    # llama_guard_2检查
-    if llama_guard_2 != "safe":
-        is_valid = False
-
-    # 语言检查
-    if language == "ZH":  # 中文
-        pass  # 保留
-    elif language == "EN":  # 英文
-        import random
-
-        if random.random() > 1 / 3:  # 三分之一几率保留
+        # 文本长度检查
+        if len(all_text) > 5000 or len(all_text) < 100:
             is_valid = False
-    else:  # 其他语言
-        is_valid = False
 
-    # 重复次数检查
-    if repeat_count >= 1:
-        is_valid = False
+        # 输入质量检查
+        if input_quality == "poor" or input_quality == "very poor":
+            is_valid = False
+
+        # llama_guard_2检查
+        if llama_guard_2 != "safe":
+            is_valid = False
+
+        # 语言检查
+        if language == "ZH":
+            pass
+        elif language == "EN":  # 英文
+            import random
+
+            if random.random() > 1 / 2:  # 三分之一几率保留
+                is_valid = False
+        else:  # 其他语言
+            is_valid = False
+
+        # 重复次数检查
+        if repeat_count >= 1:
+            is_valid = False
 
         # if "Coding" in task_category:
         #     is_valid = False
@@ -181,6 +181,6 @@ def process_files_in_parallel(source_directory: str, target_directory: str) -> N
 
 
 if __name__ == "__main__":
-    source_dir = "/data/nfs/data/Magpie-Qwen2-Pro-1M-v0.1-jsonl/data"
-    target_dir = "/data/nfs/data/Magpie-Qwen2-Pro-1M-v0.1-jsonl/data_filter"
+    source_dir = "/data/nfs/data/Magpie-Qwen2-Pro-200K-Chinese-jsonl/data"
+    target_dir = "/data/nfs/data/Magpie-Qwen2-Pro-200K-Chinese-jsonl/data_filter"
     process_files_in_parallel(source_dir, target_dir)
