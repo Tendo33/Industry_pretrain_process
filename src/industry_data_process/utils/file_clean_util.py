@@ -205,7 +205,7 @@ def extract_key_information(
                     except json.JSONDecodeError as e:
                         print(f"Error decoding JSON: {e}")
                         for key in keywords:
-                            keyword_out[key].append(None)
+                            keyword_out[key].append("")
 
                 return keyword_out
             else:

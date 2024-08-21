@@ -35,29 +35,59 @@ def create_temp_dict(
         language_list,
         repeat_count_list,
     ):
+        # print(f"conversations: {conversations}")
+        # print(f"task_category: {task_category}")
+        # print(f"other_task_category: {other_task_category}")
+        # print(f"difficulty: {difficulty}")
+        # print(f"input_quality: {input_quality}")
+        # print(f"llama_guard_2: {llama_guard_2}")
+        # print(f"language: {language}")
+        # print(f"repeat_count: {repeat_count}")
+        # print("-" * 50)
+
+        # if (
+        #     not conversations
+        #     or not task_category
+        #     or not difficulty
+        #     or not language
+        #     or not llama_guard_2
+        #     or not language
+        #     or not repeat_count
+        # ):
+        #     continue
         is_valid = True
         question = conversations[0]["value"]
         answer = conversations[1]["value"]
         all_text = question + answer
-        if len(all_text) > 5000 or len(all_text) < 100:
-            is_valid = False
+    # 文本长度检查
+    if len(all_text) > 5000 or len(all_text) < 100:
+        is_valid = False
 
-        if input_quality == "poor" or input_quality == "very poor":
-            is_valid = False
-        if llama_guard_2 != "safe":
-            is_valid = False
-        if language != "ZH" and language != "EN":
-            is_valid = False
-        if repeat_count >= 3:
-            is_valid = False
+    # 输入质量检查
+    if input_quality == "poor" or input_quality == "very poor":
+        is_valid = False
 
-        if (
-            "Coding" in task_category
-            or "Coding" in other_task_category
-            or "Math" in task_category
-            or "Math" in other_task_category
-        ):
+    # llama_guard_2检查
+    if llama_guard_2 != "safe":
+        is_valid = False
+
+    # 语言检查
+    if language == "ZH":  # 中文
+        pass  # 保留
+    elif language == "EN":  # 英文
+        import random
+
+        if random.random() > 1 / 3:  # 三分之一几率保留
             is_valid = False
+    else:  # 其他语言
+        is_valid = False
+
+    # 重复次数检查
+    if repeat_count >= 1:
+        is_valid = False
+
+        # if "Coding" in task_category:
+        #     is_valid = False
         if is_valid:
             temp_dict = {
                 "conversations": conversations,
@@ -67,6 +97,7 @@ def create_temp_dict(
                 "input_quality": input_quality,
                 "llama_guard_2": llama_guard_2,
                 "language": language,
+                "repeat_count": repeat_count,
             }
             temp_list.append(temp_dict)
 
@@ -150,6 +181,6 @@ def process_files_in_parallel(source_directory: str, target_directory: str) -> N
 
 
 if __name__ == "__main__":
-    source_dir = "/data/nfs/data/Magpie-Qwen2-Pro-200K-Chinese-jsonl/data"
-    target_dir = "/data/nfs/data/Magpie-Qwen2-Pro-200K-Chinese-jsonl/data_filter"
+    source_dir = "/data/nfs/data/Magpie-Qwen2-Pro-1M-v0.1-jsonl/data"
+    target_dir = "/data/nfs/data/Magpie-Qwen2-Pro-1M-v0.1-jsonl/data_filter"
     process_files_in_parallel(source_dir, target_dir)
