@@ -45,42 +45,52 @@ def create_temp_dict(
 
     return temp_list
 
-
 def process_base(source_file_path: str, target_file_path: str) -> None:
-    keys = [
-        "conversations",
-        "task_category",
-        "other_task_category",
-        "difficulty",
-        "input_quality",
-        "llama_guard_2",
-        "language",
-    ]
-    dict_temp = extract_key_information(source_file_path, keys)
-
-    data_list = create_temp_dict(
-        dict_temp["conversations"],
-        dict_temp["task_category"],
-        dict_temp["other_task_category"],
-        dict_temp["difficulty"],
-        dict_temp["input_quality"],
-        dict_temp["llama_guard_2"],
-        dict_temp["language"],
-    )
-    print(len(data_list))
-    save_to_jsonl(data_list, target_file_path)
+    try:
+        keys = [
+            "conversations",
+            "task_category",
+            "other_task_category",
+            "difficulty",
+            "input_quality",
+            "llama_guard_2",
+            "language",
+        ]
+        dict_temp = extract_key_information(source_file_path, keys)
+        data_list = create_temp_dict(
+            dict_temp["conversations"],
+            dict_temp["task_category"],
+            dict_temp["other_task_category"],
+            dict_temp["difficulty"],
+            dict_temp["input_quality"],
+            dict_temp["llama_guard_2"],
+            dict_temp["language"],
+        )
+        print(f"Processing {source_file_path}, found {len(data_list)} items")
+        save_to_jsonl(data_list, target_file_path)
+    except Exception as e:
+        print(f"Error processing {source_file_path}: {e}")
 
 
 def process_files_in_parallel(source_directory: str, target_directory: str) -> None:
+    if not os.path.exists(target_directory):
+        os.makedirs(target_directory)
+
     files = [f for f in os.listdir(source_directory) if f.endswith(".jsonl")]
     file_pairs = [
         (os.path.join(source_directory, f), os.path.join(target_directory, f))
         for f in files
     ]
-    print(file_pairs)
-    max_workers = min(64, os.cpu_count() or 1)
+    print(f"File pairs to process: {file_pairs}")
+
+    max_workers = min(32, os.cpu_count() or 1)
     with ProcessPoolExecutor(max_workers=max_workers) as executor:
-        executor.map(process_base, (pair for pair in file_pairs))
+        futures = [executor.submit(process_base, *pair) for pair in file_pairs]
+        for future in futures:
+            try:
+                future.result()  # 捕获并处理可能的异常
+            except Exception as e:
+                print(f"Error in parallel processing: {e}")
 
 
 if __name__ == "__main__":
