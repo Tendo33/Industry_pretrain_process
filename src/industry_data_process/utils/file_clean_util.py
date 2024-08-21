@@ -176,28 +176,44 @@ def extract_txt_content(folder_path: str) -> list[dict]:
 
 # 从 jsonl 中提取 key 信息
 def extract_key_information(
-    file_path: str, keywords: Union[str, list[str]]
-) -> Union[list[str], dict]:
-    if isinstance(keywords, str):
-        keyword_out = []
+    file_path: str, keywords: Union[str, List[str]]
+) -> Union[List[Union[str, None]], Dict[str, List[Union[str, None]]]]:
+    keyword_out = []
 
+    try:
         with open(file_path, "r", encoding="utf-8") as file:
-            for line in file:
-                data = json.loads(line)
-                keyword_out.append(data.get(keywords))
+            if isinstance(keywords, str):
+                for line in file:
+                    try:
+                        data = json.loads(line)
+                        keyword_out.append(data.get(keywords))
+                    except json.JSONDecodeError as e:
+                        print(f"Error decoding JSON: {e}")
+                        keyword_out.append(None)
 
-        return keyword_out
+                return keyword_out
 
-    elif isinstance(keywords, list):
-        keyword_out = {key: [] for key in keywords}
+            elif isinstance(keywords, list):
+                keyword_out = {key: [] for key in keywords}
 
-        with open(file_path, "r", encoding="utf-8") as file:
-            for line in file:
-                data = json.loads(line)
-                for key in keywords:
-                    value = data.get(key, "")
-                    keyword_out[key].append(value)
+                for line in file:
+                    try:
+                        data = json.loads(line)
+                        for key in keywords:
+                            value = data.get(key)
+                            keyword_out[key].append(value)
+                    except json.JSONDecodeError as e:
+                        print(f"Error decoding JSON: {e}")
+                        for key in keywords:
+                            keyword_out[key].append(None)
 
+                return keyword_out
+            else:
+                raise ValueError(
+                    "Keywords must be either a string or a list of strings."
+                )
+    except IOError as e:
+        print(f"Error reading file: {e}")
         return keyword_out
 
 
