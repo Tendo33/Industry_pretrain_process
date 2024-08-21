@@ -1,4 +1,3 @@
-import json
 import os
 from concurrent.futures import ProcessPoolExecutor
 from utils.file_clean_util import extract_key_information
@@ -35,26 +34,6 @@ def create_temp_dict(
         language_list,
         repeat_count_list,
     ):
-        # print(f"conversations: {conversations}")
-        # print(f"task_category: {task_category}")
-        # print(f"other_task_category: {other_task_category}")
-        # print(f"difficulty: {difficulty}")
-        # print(f"input_quality: {input_quality}")
-        # print(f"llama_guard_2: {llama_guard_2}")
-        # print(f"language: {language}")
-        # print(f"repeat_count: {repeat_count}")
-        # print("-" * 50)
-
-        # if (
-        #     not conversations
-        #     or not task_category
-        #     or not difficulty
-        #     or not language
-        #     or not llama_guard_2
-        #     or not language
-        #     or not repeat_count
-        # ):
-        #     continue
         is_valid = True
         question = conversations[0]["value"]
         answer = conversations[1]["value"]
@@ -174,7 +153,7 @@ def process_files_in_parallel(source_directory: str, target_directory: str) -> N
         futures = [executor.submit(process_base, *pair) for pair in file_pairs]
         for future in futures:
             try:
-                future.result()  # 捕获并处理可能的异常
+                future.result()
             except Exception as e:
                 print(f"Error in parallel processing: {e}")
 
