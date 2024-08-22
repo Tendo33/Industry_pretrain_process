@@ -54,10 +54,12 @@ def create_temp_dict(
         if language == "ZH":
             pass
         elif language == "EN":  # 英文
-            import random
+            pass
+            # import random
 
-            if random.random() > 1 / 2:  # 三分之一几率保留
-                is_valid = False
+            # if random.random() > 1 / 2:  # 三分之一几率保留
+
+            #     is_valid = False
         else:  # 其他语言
             is_valid = False
 
@@ -160,6 +162,6 @@ def process_files_in_parallel(source_directory: str, target_directory: str) -> N
 
 
 if __name__ == "__main__":
-    source_dir = "/data/nfs/data/Magpie-Qwen2-Pro-200K-Chinese-jsonl/data"
-    target_dir = "/data/nfs/data/Magpie-Qwen2-Pro-200K-Chinese-jsonl/data_filter"
+    source_dir = "/data/nfs/data/Magpie-Llama-3.1-Pro-300K-Filtered-jsonl/data"
+    target_dir = "/data/nfs/data/Magpie-Llama-3.1-Pro-300K-Filtered-jsonl/data_filter"
     process_files_in_parallel(source_dir, target_dir)
