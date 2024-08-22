@@ -66,9 +66,9 @@ def create_temp_dict(
         # 重复次数检查
         if repeat_count >= 1:
             is_valid = False
-
-        # if "Coding" in task_category:
-        #     is_valid = False
+        if task_category:
+            if "Coding" in task_category:
+                is_valid = False
         if is_valid:
             temp_dict = {
                 "conversations": conversations,
@@ -162,6 +162,6 @@ def process_files_in_parallel(source_directory: str, target_directory: str) -> N
 
 
 if __name__ == "__main__":
-    source_dir = "/data/nfs/data/Magpie-Llama-3.1-Pro-300K-Filtered-jsonl/data"
-    target_dir = "/data/nfs/data/Magpie-Llama-3.1-Pro-300K-Filtered-jsonl/data_filter"
+    source_dir = "/data/nfs/data/Magpie-Qwen2-Pro-200K-Chinese-jsonl/data"
+    target_dir = "/data/nfs/data/Magpie-Qwen2-Pro-200K-Chinese-jsonl/data_filter"
     process_files_in_parallel(source_dir, target_dir)
