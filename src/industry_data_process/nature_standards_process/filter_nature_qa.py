@@ -5,9 +5,9 @@ from transformers import AutoTokenizer
 from vllm import LLM, SamplingParams
 
 # os.environ["NCCL_NVLS_ENABLE"] = "0"
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 
-BATCH_SIZE = 64
+BATCH_SIZE = 32
 
 # 定义系统提示语
 SYSTEM_PROMPT = """
@@ -33,9 +33,9 @@ SYSTEM_PROMPT = """
 - 给定的问题必须有高的语义清晰度以及具有宏观性、价值性、信息完整性和低的困惑度。
 - 给定的答案必须与问题吻合切回答了对应的问题。
 - 如果输入不属于“{"instruction": "xxx", "output": "xxx"}”格式，直接返回数字0。
-- 如果答案中出现图片，表格，markdown格式的数据，，直接返回数字0。
+- 如果答案中出现图片，表格，直接返回数字0。
 - 评估结果必须清晰明确，符合标准则返回数字1，不合格则返回数字0。
-- 如果问题或者回答中有“**”或者“##”等脱敏符号导致原本的语义不完整，直接返回数字0。
+- 如果问题或者回答中有“**”或者“xxx”等脱敏符号导致原本的语义不完整，直接返回数字0。
 - 如果问题或者回答中有个人信息比如电话，邮件，网站，私人地址等，直接返回数字0。
 - 如果问题中有类似“表1”，“本文件”，“本附件”等含糊的内容，直接返回数字0。
 
@@ -118,17 +118,17 @@ if __name__ == "__main__":
     )
 
     # 文件路径
-    INPUT_FILE_PATH = r"/workspace/share_data/data/nature_data/nature_qa_1234.jsonl"
-    OUTPUT_FILE_PATH = (
-        r"/workspace/share_data/data/nature_data/nature_qa_1234_filter2.jsonl"
-    )
+    INPUT_FILE_PATH = r"/workspace/sunjinfeng/github_projet/data/nature_data/1content_list_json_qa_vllm.jsonl"
+    OUTPUT_FILE_PATH = r"/workspace/sunjinfeng/github_projet/data/nature_data/1content_list_json_qa_vllm_filter.jsonl"
     # 读取文件内容
     documents = []
     with open(INPUT_FILE_PATH, "r", encoding="utf-8") as input_file:
         for i, line in enumerate(input_file):
             try:
                 if line.strip():
-                    documents.append(json.loads(line))
+                    data = json.loads(line)
+                    temp = {"instruction": data["question"], "output": data["answer"]}
+                    documents.append(temp)
             except json.JSONDecodeError as e:
                 print(f"Error decoding JSON on line {i+1}: {e}")
                 print(f"Problematic line content: {line}")
