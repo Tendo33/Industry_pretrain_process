@@ -217,10 +217,10 @@ if __name__ == "__main__":
         gpu_memory_utilization=0.95,
         enforce_eager=True,
     )
-    INPUT_FILE_PATH = (
-        r"/workspace/sunjinfeng/github_projet/data/nature_data/1content_list_json.jsonl"
+    INPUT_FILE_PATH = r"/workspace/sunjinfeng/github_projet/data/nature_data/paper_mineru_ocr_out.jsonl"
+    OUTPUT_FILE_PATH = (
+        r"/workspace/sunjinfeng/github_projet/data/nature_data/paper_sft_qa.jsonl"
     )
-    OUTPUT_FILE_PATH = r"/workspace/sunjinfeng/github_projet/data/nature_data/1content_list_json_qa_vllm.jsonl"
 
     with open(INPUT_FILE_PATH, "r", encoding="utf-8") as input_file:
         documents = [json.loads(line) for line in input_file]
