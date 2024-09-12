@@ -127,7 +127,7 @@ def pdf_parse_main(
 
 def process_all_pdfs_in_directory(
     directory: str,
-    parse_method: str = "auto",
+    parse_method: str = "ocr",
     model_json_path: str = None,
     is_json_md_dump: bool = True,
     output_dir: str = None,
@@ -155,5 +155,5 @@ def process_all_pdfs_in_directory(
 
 
 if __name__ == "__main__":
-    pdf_directory = r"/workspace/sunjinfeng/github_projet/Industry_pretrain_process/data/test_data"
+    pdf_directory = r"/workspace/sunjinfeng/github_projet"
     process_all_pdfs_in_directory(pdf_directory)
