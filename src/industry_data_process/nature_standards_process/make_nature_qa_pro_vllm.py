@@ -224,11 +224,6 @@ if __name__ == "__main__":
 
     with open(INPUT_FILE_PATH, "r", encoding="utf-8") as input_file:
         documents = [json.loads(line) for line in input_file]
-        # documents = [
-        #     {**data, "content": data["content"][:20000]}
-        #     for data in documents
-        #     if data.get("content")
-        # ]
 
     with open(OUTPUT_FILE_PATH, "a", encoding="utf-8") as output_file:
         for document_data in tqdm(
