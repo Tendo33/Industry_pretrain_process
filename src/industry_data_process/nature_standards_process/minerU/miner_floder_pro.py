@@ -17,6 +17,24 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 # 使用内部模型
 model_config.__use_inside_model__ = True
 
+def init_model():
+    from magic_pdf.model.doc_analyze_by_custom_model import ModelSingleton
+
+    try:
+        model_manager = ModelSingleton()
+        txt_model = model_manager.get_model(False, False)
+        logger.info(f"txt_model init final")
+        ocr_model = model_manager.get_model(True, False)
+        logger.info(f"ocr_model init final")
+        return 0
+    except Exception as e:
+        logger.exception(e)
+        return -1
+
+
+model_init = init_model()
+logger.info(f"model_init: {model_init}")
+
 
 def json_md_dump(pipe, md_writer, pdf_name, content_list, md_content):
     """将解析结果写入JSON和Markdown文件"""
