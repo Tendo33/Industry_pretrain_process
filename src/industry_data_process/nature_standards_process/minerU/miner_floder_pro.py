@@ -23,9 +23,9 @@ def init_model():
     try:
         model_manager = ModelSingleton()
         txt_model = model_manager.get_model(False, False)
-        logger.info(f"txt_model init final")
+        logger.info("txt_model init final")
         ocr_model = model_manager.get_model(True, False)
-        logger.info(f"ocr_model init final")
+        logger.info("ocr_model init final")
         return 0
     except Exception as e:
         logger.exception(e)
