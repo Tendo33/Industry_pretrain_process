@@ -7,7 +7,7 @@ from vllm import LLM, SamplingParams
 # os.environ["NCCL_NVLS_ENABLE"] = "0"
 os.environ["CUDA_VISIBLE_DEVICES"] = "0,2"
 
-BATCH_SIZE = 128
+BATCH_SIZE = 64
 
 # 定义系统提示语
 SYSTEM_PROMPT = """
