@@ -5,9 +5,9 @@ from transformers import AutoTokenizer
 from vllm import LLM, SamplingParams
 
 # os.environ["NCCL_NVLS_ENABLE"] = "0"
-os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0,2"
 
-BATCH_SIZE = 16
+BATCH_SIZE = 128
 
 # 定义系统提示语
 SYSTEM_PROMPT = """
@@ -22,6 +22,7 @@ SYSTEM_PROMPT = """
 - 理解并分析jsonl数据格式。
 - 判断问答对的宏观性、价值性、信息完整性和困惑度。
 - 理解并评估问题的清晰度和答案的准确性。
+- 鉴定用户输入的内容是否属于自然资源领域
 
 ## Skills
 - 分析和评估问答对的质量。
@@ -43,7 +44,8 @@ SYSTEM_PROMPT = """
 1. 接收用户提供的jsonl格式数据。
 2. 分析数据中的"instruction"字段作为问答对的问题，评估问题的语义清晰度和价值性以及困惑度，主谓宾都是确定且不模糊的。
 3. 分析数据中的"output"字段作为问答对的答案，评估答案的准确性、信息完整性和困惑度。
-4. 根据评估结果，返回数字1（合格）或数字0（不合格）。
+4. 判断问答对是否属于自然资源领域。
+5. 根据评估结果，返回数字1（合格）或数字0（不合格）。
 
 ## Examples
 1. 输入为{"instruction": "土地利用确权的使用期限起始时间是什么时候？", "output": "2008-10-01"}，这里面的问题具有宏观性，困惑度低，所以是一个好问题，这里面的回答也是标准的，没有乱回，所以这个问答对是标准的，应当返回数字1。
@@ -102,24 +104,27 @@ def process_documents_in_batch(documents, start_index, end_index, llm, sampling_
 if __name__ == "__main__":
     # 模型和tokenizer路径
     # MODEL_PATH = r"/workspace/share_data/base_llms/Qwen2-7B-Instruct"
-    MODEL_PATH = r"/workspace/share_data/base_llms/Qwen1.5-14B-Chat"
+    # MODEL_PATH = r"/workspace/share_data/base_llms/Qwen1.5-14B-Chat"
     MODEL_PATH = r"/workspace/share_data/base_llms/Qwen2-72B-Instruct-AWQ"
     tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 
     # Sampling参数
-    sampling_params = SamplingParams(temperature=0.2, top_p=0.90, max_tokens=22000)
+    sampling_params = SamplingParams(temperature=0.2, max_tokens=32000)
     llm = LLM(
         model=MODEL_PATH,
         dtype="auto",
-        tensor_parallel_size=1,
+        tensor_parallel_size=2,
         tokenizer_mode="auto",
         gpu_memory_utilization=0.95,
         enforce_eager=True,
     )
 
     # 文件路径
-    INPUT_FILE_PATH = r"/workspace/sunjinfeng/github_projet/data/nature_data/1content_list_json_qa_vllm.jsonl"
-    OUTPUT_FILE_PATH = r"/workspace/sunjinfeng/github_projet/data/nature_data/1content_list_json_qa_vllm_filter.jsonl"
+    INPUT_FILE_PATH = (
+        r"/workspace/sunjinfeng/github_projet/data/nature_data/paper_sft_qa.jsonl"
+    )
+
+    OUTPUT_FILE_PATH = r"/workspace/sunjinfeng/github_projet/data/nature_data/paper_sft_qa_filter.jsonl"
     # 读取文件内容
     documents = []
     with open(INPUT_FILE_PATH, "r", encoding="utf-8") as input_file:
