@@ -73,6 +73,26 @@ SYSTEM_PROMPT_ANSWER_GENERATION = """
 3. 基于关键主题和信息，根据用户给定的问题生成严谨、有价值的回答。
 """
 
+# 定义释放GPU显存的函数
+def release_gpu_memory(llm):
+    """
+    释放GPU显存，防止内存泄漏
+    """
+    import gc
+    import torch
+    from vllm.distributed.parallel_state import (
+        destroy_model_parallel,
+        destroy_distributed_environment,
+    )
+
+    destroy_model_parallel()
+    destroy_distributed_environment()
+    del llm.llm_engine.model_executor.driver_worker
+    del llm.llm_engine.model_executor
+    del llm
+    gc.collect()
+    torch.cuda.empty_cache()
+    print(f"cuda memory: {torch.cuda.memory_allocated() // 1024 // 1024}MB")
 # 检查文档是否已经处理过
 def is_document_processed(document_title, output_file_path):
     if not os.path.exists(output_file_path):
